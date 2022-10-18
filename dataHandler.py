@@ -17,6 +17,8 @@ import torchvision.transforms as T
 from PIL import Image
 
 
+torch.set_default_tensor_type(torch.FloatTensor)
+
 
 path = os.getcwd() 
 
@@ -34,13 +36,42 @@ def load(folder):
     return data
     #need to change height and width to 128
     #also need to get randindexes?
-
-def resize(album):
-    for img in album:
-        transform = T.Resize(size = (128,128))
-        img = transform(img)
     
 
+
+def resize(album):
+    for index, photo in enumerate(album):
+        #have to get the photo from numpy array to pillow object
+        transform_pil = T.ToPILImage()
+        photo = transform_pil(photo)
+    
+        transform_size = T.Resize((128,128))
+        img = transform_size(photo)
+        album[index] = img
+          #album[index] = image
+    return album
+    #album = np.stack(album,axis = 3)
+    
+
+        
+
+def convert(album):
+    #convert everything in the lists to tensors
+    #then stack list of tensors
+    #to get 4d tensor
+     for index, img in enumerate(album):
+         make_tensor = T.ToTensor()
+         img = make_tensor(img)
+         album[index] = img
+         if(img) == None:
+             print('there is none object')
+    #should convert list of tensors to 4d tensor
+     album = torch.stack(album)
+     
+     return album  
+     
+
+    
 
         
 def shuffle(album):
@@ -58,16 +89,15 @@ grayscale_path = path + slash + 'gray'
 album_faces = load(face_path + slash +'*.jpg')
 album_colors = load(originals_path + slash + '**' + slash +'*.jpg')
 album_gray = load(grayscale_path + slash + '**' + slash +'*.jpg')
-    
-print('done!')
-#first make albums into arrays instead of list of arrays
+
+#note album_faces is already size 128x128 does not need to be resized
+album_faces = convert(album_faces)
+
+album_colors = resize(album_colors)
+album_colors = convert(album_colors)
+
+album_gray =resize(album_gray)
+album_gray = convert(album_gray)
 
 
-#now convert to tensor
-album_faces = torch.from_numpy(album_faces).type(torch.FloatTensor)
-album_colors = torch.from_numpy(album_colors).type(torch.FloatTensor)
-album_gray = torch.from_numpy(album_gray).type(torch.FloatTensor)
-
-
-#NOTE none of the faces are all aready size 128x128
 
