@@ -16,6 +16,8 @@ import torch
 import torchvision.transforms as T
 from PIL import Image
 
+from matplotlib.pyplot import title
+
 
 torch.set_default_tensor_type(torch.FloatTensor)
 
@@ -225,7 +227,8 @@ def ImageToLAB(image):
     new_image = cv2.cvtColor(np_image, cv2.COLOR_BGR2LAB)
 
     # conver new image back to tensor array
-    return torch.Tensor(torch.Tensor(new_image).permute(1, 0, 2).T)
+    # return new_image    # return numpy array
+    return torch.Tensor(torch.Tensor(new_image).permute(1, 0, 2).T) # returns tensor
 
 
 
@@ -238,19 +241,27 @@ def ImageToLAB(image):
 ################################
 def DisplayImageLAB(image):
     imageLAB = ImageToLAB(image)
-    L,a,b=cv2.split(imageLAB.permute(1, 2, 0).numpy())
-    cv2.imshow("LAB: LChannel", L) #album_faces[0].permute(1, 2, 0).numpy())
-    print("Hit any key to continue:")
+    imageLAB = imageLAB.permute(1, 2, 0).numpy()
+    norm_imageLAB = np.zeros_like(imageLAB)
+    norm_imageLAB = cv2.normalize(imageLAB,norm_imageLAB,0,1,cv2.NORM_MINMAX)
+    L,a,b=cv2.split(norm_imageLAB)
+
+    cv2.imshow('image', norm_imageLAB, )
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    cv2.imshow('LAB: aChannel', a)
+    cv2.imshow("LChannel", L) #album_faces[0].permute(1, 2, 0).numpy())
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    cv2.imshow('LAB: bChannel', b)
+    cv2.imshow('aChannel', a)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    cv2.imshow('bChannel', b)
+    cv2.waitKey(1)
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
 
 
 ################################
@@ -295,7 +306,7 @@ album_faces = convert(album_faces)
 
 
 # plot Original and Augmented Image
-DisplayAugmentedImage(album_faces[1])
+# DisplayAugmentedImage(album_faces[1])
 
 # plot LAB version of image
 DisplayImageLAB(album_faces[0])
