@@ -75,7 +75,22 @@ def convert(album):
 
         
 def shuffle(album):
-    indices = torch.randperm(album.shape[1])
+    indices = torch.randperm(album.shape[0])
+    #randperm generates valid random indices
+    #view returns a new tensor with the same data except the data has
+    #been rearranged
+    shuffled_album = album[indices].view(album.size())
+    return shuffled_album
+
+def augment(album):
+    #want to generate 10 times the number 
+    #of samples compared to original
+    #using crop rotations and flips and scalings of RGB values from [0.6,1.0]
+    #should be possible for all three operations to be applied to
+    
+    
+    pass
+
         
     
 face_path = path + slash + 'face_images'
