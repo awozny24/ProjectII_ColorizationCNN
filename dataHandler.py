@@ -97,7 +97,7 @@ def AugmentData(album, multiplier=10, keepOriginal=True, min_percent_crop=0.75):
     # Flip, Random Crop, RGB Scaling
     
     # create empty tensor of 10x more samples w/ same dimensions
-    album_new = torch.zeros([album.shape[0]*multiplier] + [album.shape[i] for i in range(1,len(album.shape))])
+    album_new = torch.zeros([album.shape[0]*multiplier] + [i for i in album.shape[1:4]])
     
     # if specified to keep the original data
     if keepOriginal:
@@ -136,9 +136,6 @@ def AugmentData(album, multiplier=10, keepOriginal=True, min_percent_crop=0.75):
 ################################
 def AugmentImage(image, min_percent_crop=0.75):
     
-    # convert image to numpy array
-    image = image.numpy()
-    
     # number of augmentation strategies
     numAugStrat = 3
     
@@ -152,22 +149,18 @@ def AugmentImage(image, min_percent_crop=0.75):
     augTechs = augTechs[0:numAugTechs]
     for augNum in augTechs:
         # horizontally flip image
-        # TODO: Horizontal flipping not working --> find problem and fix
         if augNum == 0:
-            image = cv2.flip(image, 1)
+            image = torch.flip(image, dims=(2,))
 
         # crop and resize image
         if augNum == 1:
-            crop_dim = np.random.randint(int(min_percent_crop*image.shape[-2]), image.shape[-2])
+            crop_dim = np.random.randint(int(min_percent_crop*image.shape[1]), image.shape[1])
             image = RandomCrop(image, crop_dim, crop_dim)
 
         # rgb scaling for image
         if augNum == 2:
             scale = np.random.uniform(low=0.6, high=1)
             image = image * scale
-    
-    # convert image back to tensor and return result
-    image = torch.Tensor(image)
                     
     return image
                     
@@ -184,19 +177,27 @@ def AugmentImage(image, min_percent_crop=0.75):
 ################################
 def RandomCrop(image, crop_height, crop_width):
     # get max lower bound of crop
-    max_x = image.shape[-1] - crop_width
-    max_y = image.shape[-2] - crop_height
+    max_x = image.shape[2] - crop_width
+    max_y = image.shape[1] - crop_height
 
     # get lower bound of crop
     x = np.random.randint(0, max_x)
     y = np.random.randint(0, max_y)
     
     # crop each image channel
-    crop = np.zeros([image.shape[-3], crop_height, crop_width])
-    cropResize = np.zeros([image.shape[-3], image.shape[-2], image.shape[-1]])
-    for i in range(0, image.shape[-3]):
+    crop = np.zeros([image.shape[0], crop_height, crop_width])
+    cropResize = np.zeros([image.shape[0], image.shape[1], image.shape[2]])
+    for i in range(0, image.shape[0]):
+        
+        # crop by selected desired pixels
         crop[i] = image[i][y: y + crop_height, x: x + crop_width]
+        
+        # resize image to original size
         cropResize[i] = cv2.resize(crop[i], (image.shape[-2], image.shape[-1]))
+        
+    # convert resized cropped image back to tensor
+    cropResize = torch.Tensor(cropResize)
+        
 
     return cropResize
 
@@ -207,19 +208,66 @@ def RandomCrop(image, crop_height, crop_width):
 # Parameters:
 #   album: album of tensor images
 ################################
-def ImageToLAB(album):
+def AlbumToLAB(album):
+    # convert each RGB image to LAB and store in new album as result
     new_album = torch.zeros([i for i in album.shape])
     for i, image in enumerate(album):
-        # permute tensor and convert to numpy to work properly with cv2.cvtColor
-        np_image = image.permute(1, 2, 0).numpy()
-
-        # convert image from rgb to lab
-        new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2LAB)
-
-        # put new image in tensor array
-        new_album[i] = torch.Tensor(new_image)
+        new_album[i] = ImageToLAB(image)
 
     return new_album
+
+
+def ImageToLAB(image):
+    # permute tensor and convert to numpy to work properly with cv2.cvtColor
+    np_image = image.permute(1, 2, 0).numpy()
+
+    # convert image from rgb to lab
+    new_image = cv2.cvtColor(np_image, cv2.COLOR_BGR2LAB)
+
+    # conver new image back to tensor array
+    return torch.Tensor(torch.Tensor(new_image).permute(1, 0, 2).T)
+
+
+
+
+################################
+# Description: 
+#   Displays each component of image in LAB form
+# Parameters:
+#   image: RGB image
+################################
+def DisplayImageLAB(image):
+    imageLAB = ImageToLAB(image)
+    L,a,b=cv2.split(imageLAB.permute(1, 2, 0).numpy())
+    cv2.imshow("LAB: LChannel", L) #album_faces[0].permute(1, 2, 0).numpy())
+    print("Hit any key to continue:")
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    cv2.imshow('LAB: aChannel', a)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    cv2.imshow('LAB: bChannel', b)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+################################
+# Description: 
+#   Displays the original image passed in and the image resulting from augmentation
+# Parameters:
+#   image: RGB image
+################################
+def DisplayAugmentedImage(image):
+    aug_face_image = AugmentImage(image, min_percent_crop=0.75)
+    cv2.imshow('Original', image.permute(1, 2, 0).numpy())
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cv2.imshow('Augmented', aug_face_image.permute(1, 2, 0).numpy())
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
         
     
@@ -245,31 +293,15 @@ album_faces = convert(album_faces)
 # album_gray = convert(album_gray)
 
 
-imageLAB = ImageToLAB(album_faces[0])
-L,a,b=cv2.split(imageLAB)
-cv2.imshow("LChannel", L) #album_faces[0].permute(1, 2, 0).numpy())
-print("Hit any key to continue:")
-cv2.waitKey(0)
-cv2.destroyAllWindows()
 
-cv2.imshow('aChannel', a)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# plot Original and Augmented Image
+DisplayAugmentedImage(album_faces[1])
 
-cv2.imshow('bChannel', b)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-# plot example Original Image
-# plt.imshow(album_faces[0].permute(-2, -1, -3))
-# plt.title("Original Image")
-
-# # plot example Augmented Image
-# plt.imshow(AugmentImage(album_faces[0], min_percent_crop=0.75).permute(-2, -1, -3))
-# plt.title("Augmented Image")
+# plot LAB version of image
+DisplayImageLAB(album_faces[0])
 
 # # augment and shuffle data
-# album_faces_aug = ShuffleData(AugmentData(album_faces, multiplier=10, keepOriginal=True, min_percent_crop=0.75))
+# album_faces_aug = shuffle(AugmentData(album_faces, multiplier=10, keepOriginal=True, min_percent_crop=0.75))
 
 # # show arbitrary example image from augmented and shuffled dataset
 # plt.imshow(album_faces_aug[125].permute(-2, -1, -3))
