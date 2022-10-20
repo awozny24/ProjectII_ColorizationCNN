@@ -297,6 +297,8 @@ album_faces = load(face_path + slash +'*.jpg')
 #note album_faces is already size 128x128 does not need to be resized
 album_faces = convert(album_faces)
 
+augmented_faces = AugmentData(album_faces)
+print("no errors")
 # album_colors = resize(album_colors)
 # album_colors = convert(album_colors)
 

@@ -123,15 +123,11 @@ def AugmentData(album, multiplier=3, keepOriginal=True):
    
     
 def horiz_flip(image):
-   
-        
+
    # print('in flip')
     transform_flip = T.RandomHorizontalFlip(p=1) 
-
-  
     image = transform_flip(image)
-  
-    
+
     return image
     
     
@@ -142,15 +138,11 @@ def scale(image):
     scale = np.random.uniform(low=0.6, high=1.0)
     image = torch.mul(image,torch.tensor(scale))
     
-    
     return image
     
 
 def crop(image):
    # print('in crop')
-    
-    
-    
     #dividing by 4/3 is the same as shrinking the original image to 75%
     crop_factor_width = random.uniform(1,4/3)
     crop_factor_height = random.uniform(1,4/3)
@@ -160,7 +152,6 @@ def crop(image):
     make_tensor = T.ToTensor()  
     transform_pil = T.ToPILImage()
     transform_size = T.Resize((128,128))
-    
     
        #converting from tensor to numpy array and back again
        #because T.ToPILImage accepts tensors in the sequence Channels x Height x Width
@@ -173,33 +164,18 @@ def crop(image):
     #convert back to tensor once done
     image = np.array(image)
     image = torch.from_numpy(image)
-
-    
     
     return image
-    
-    
-    
- 
- 
+
     
 
-
-################################
-#Descriptor:
-#Saves the images in augmented data into a new folder
-#Params:
-#augmented data
-################################
 
 def saveAugmented(album, folder_name):
     subfolder_dir = os.path.join(path, folder_name)
     
     if not os.path.exists(subfolder_dir):
         os.mkdir(subfolder_dir)
-        
-    
-   
+
     count = 0
     #doing a tensor to numpy conversion
     for image in album:
@@ -210,6 +186,46 @@ def saveAugmented(album, folder_name):
        count +=1
        #save_image(image,subfolder_dir + str(count), format = '.jpg')
     
+def convert_LAB(album):
+    converted_album = [[] for _ in range( len(album))]
+    
+    #code borrowed from https://towardsdatascience.com/computer-vision-101-working-with-color-images-in-python-7b57381a8a54
+    for index, image in enumerate(album):
+        #do LAB conversion here
+        image = np.asarray(image).astype('uint8')
+        converted_image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        
+        names = []
+        channels = []
+        
+        for (name, chan) in zip(("L", "a", "b"), cv2.split(converted_image)):
+            names.append(name)
+            channels.append(chan)
+           # cv2.imshow(name, chan)
+           
+        converted_album[index] = list(zip(names, channels))
+              
+    return converted_album
+        
+def saveLAB(album, folder_name):
+    subfolder_dir = os.path.join(path, folder_name)
+    
+    if not os.path.exists(subfolder_dir):
+        os.mkdir(subfolder_dir)
+
+    count = 0
+    #each entry inside an LAB color space album is a tuple
+    for tup in album:
+       # image = image.cpu().detach().numpy()
+       names, channels = zip(*tup)
+       
+       for i in range(len(channels)):
+           name = names[i]
+           channel = channels[i]
+           cv2.imwrite(subfolder_dir + slash + str(count) + name + '.jpg', channel)
+           
+      
+       count +=1
     
     
 
@@ -230,41 +246,17 @@ album_faces = load(face_path + slash +'*.jpg')
 #note album_faces is already size 128x128 does not need to be resized
 album_faces = convert_tensor(album_faces)
 
+lab_faces = convert_LAB(album_faces)
+
+saveLAB(lab_faces, 'LAB_TEST_FACES')
 # album_colors = resize(album_colors)
 # album_colors = convert(album_colors)
 
 # album_gray =resize(album_gray)
 # album_gray = convert(album_gray)
 
-augmented_faces = AugmentData(album_faces)
-saveAugmented(augmented_faces, 'augmented_faces')
+# augmented_faces = AugmentData(album_faces)
+# saveAugmented(augmented_faces, 'augmented_faces')
 
 
-# imageLAB = ImageToLAB(album_faces[0])
-# L,a,b=cv2.split(imageLAB)
-# cv2.imshow("LChannel", L) #album_faces[0].permute(1, 2, 0).numpy())
-# print("Hit any key to continue:")
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-# cv2.imshow('aChannel', a)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-# cv2.imshow('bChannel', b)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-# plot example Original Image
-# plt.imshow(album_faces[0].permute(-2, -1, -3))
-# plt.title("Original Image")
-
-# # plot example Augmented Image
-# plt.imshow(AugmentImage(album_faces[0], min_percent_crop=0.75).permute(-2, -1, -3))
-# plt.title("Augmented Image")
-
-# # augment and shuffle data
-# album_faces_aug = ShuffleData(AugmentData(album_faces, multiplier=10, keepOriginal=True, min_percent_crop=0.75))
-
-# # show arbitrary example image from augmented and shuffled dataset
-# plt.imshow(album_faces_aug[125].permute(-2, -1, -3))
+converted_faces = convert_LAB(album_faces)
