@@ -44,13 +44,46 @@ else:
     slash = '\\'
  
     
+# def load(folder):
+#     files = glob.glob(folder)
+#     data =[]
+#     for f in files:
+#         image = cv2.imread(f)
+#         data.append(image)
+#     return data
+
+# loads L, a, b images
+# returns a 4-d numpy array: numImages x numChannels x Width x Height
 def load(folder):
-    files = glob.glob(folder)
-    data =[]
-    for f in files:
-        image = cv2.imread(f)
-        data.append(image)
+    # find the largest number file to index (do not worry about how these next few lines work)
+    files = glob.glob(folder + "*L.jpg")
+    for i, f in enumerate(files):
+        f = f[f.rfind('/')+1:]
+        files[i] = f[0:f.rfind('.')-1]
+    maxFileNum = max([int(f) for f in files])
+    
+    # for each file index (e.g. ['0L.jpg', '0a.jpg', '0b.jpg'])
+    data = []
+    for i in range(0, maxFileNum):
+        # grab files in order 'L', 'a', 'b'
+        files = sorted(glob.glob(folder + str(0) + "?.jpg"))
+
+        # append each file
+        imageGroup = []
+        for f in files:
+            image = cv2.imread(f)
+
+            # only take one channel (all the channels here are the same)
+            imageGroup.append(image[:, :, 0])
+        
+        # group each 3 into a list of numpy arrays
+        data.append(np.asarray(imageGroup))
+        
+    # convert list to numpy array
+    data = np.asarray(data)
+        
     return data
+    
 
 def group(data, album_length):
     #group into chunks of three because of three sets of images in LAB color space
