@@ -47,7 +47,9 @@ import torchvision.transforms as T
 
 '''
 batch_size = 20
-Epochs = 50
+Epochs = 10
+lr = 0.02
+criterion = nn.MSELoss()
 torch.set_default_tensor_type(torch.FloatTensor)
 
 
@@ -200,7 +202,7 @@ class colorizer(nn.Module):
         out = self.upsamp3(out)
         out = self.upsamp4(out)
         out = self.upsamp5(out)
-        #collapse dimension 2 along dimension 1 using flatten
+        #collapse dimension 1 along dimension 0 using flatten
         out = torch.flatten(out, 0, 1)
        #out = nn.linear(2, batch_size)
        # out = out.detach().numpy()
@@ -248,9 +250,6 @@ train_dataset = imageDataset(X_train, y_train)
 test_dataset = imageDataset(X_test, y_test)
 
 #prepare dataloaders for batch training
-#create datasets
-
-
 train_loader = torch.utils.data.DataLoader(dataset = train_dataset, batch_size = batch_size)
 test_loader = torch.utils.data.DataLoader(dataset = test_dataset, batch_size = batch_size)
 
@@ -260,13 +259,7 @@ test_loader = torch.utils.data.DataLoader(dataset = test_dataset, batch_size = b
 color = colorizer()
 
 
-
-
-
-
 #run color regressor
-lr = 0.02
-criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(color.parameters(), lr)
 
 
@@ -274,6 +267,10 @@ optimizer = torch.optim.Adam(color.parameters(), lr)
 #training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
 #loss_values = []
 train_loss = []
+
+rows, cols = (2, Epochs)
+stored_images = [[0 for i in range(cols)] for j in range(rows)]
+
 for epoch in range(Epochs):  # loop over the dataset multiple times
     color.train()
    
@@ -291,13 +288,8 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         for index, images in enumerate(batch):
             # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
           #different images!
-            # label_a = (batch_a[index].float())
-            # label_b = (batch_b[index].float())
-            # input_l = (batch_l[index].float())
-            
-
-    
-            
+       
+     
             #labels = torch.tensor((label_a, label_b))
             #might not be necessary to drop duplicates
             labels = torch.stack((batch_a, batch_b), 1)
@@ -323,8 +315,26 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
             
             # print statistics
             running_loss += loss.item()
-                  
-        
+            
+            #once done with a loop I want to print out the target image 
+            #and colorized image for comparison    
+            if index == 0:
+                sample_target = cv2.merge([batch_l[0].detach().numpy(), batch_a[0].detach().numpy(), batch_b[0].detach().numpy()]) 
+                sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+                #plt.imshow(sample_target)
+                
+                sample_target = cv2.merge([batch_l[0].detach().numpy(), batch_a[0].detach().numpy(), batch_b[0].detach().numpy()]) 
+                sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+                #plt.imshow(sample_target)
+            
+                colorized_a = outputs[0].detach().numpy().astype(np.uint8)
+                colorized_b = outputs[1].detach().numpy().astype(np.uint8)
+                sample_colorized = cv2.merge([batch_l[0].detach().numpy(), colorized_a, colorized_b])
+                sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
+                #plt.imshow(sample_colorized)
+                stored_images[0][epoch] = sample_target
+                stored_images[1][epoch] = sample_colorized
+                
     train_loss.append(loss)
     print('Epoch {} of {}, Train Loss: {:.3f}'.format( epoch+1, Epochs, loss))
           
