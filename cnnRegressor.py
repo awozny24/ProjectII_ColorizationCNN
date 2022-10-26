@@ -43,6 +43,37 @@ def group(data, album_length):
     #group into chunks of three because of three sets of images in LAB color space
     for i in range (0, album_length, 3):
         yield image_data[i:i+3]
+        
+def makeChrome(a_or_b, a = None, b = None):
+    grayscale = np.ones((128,128,1), dtype = np.float32)
+    other = np.zeros((128,128,1), dtype = np.float32)
+    
+    if a_or_b == 0:
+        #use A channel
+        a_channel = np.full((128,128,1), a, dtype = np.float32)
+        chrome_image = cv2.merge([grayscale, a_channel, other])
+        
+        #remember this is not rgb
+       # chrome_image = cv2.cvtColor(chrome_image, cv2.COLOR_LAB2RGB)
+        return chrome_image
+    
+    elif a_or_b == 1:
+        #use B channel
+        b_channel = np.full((128,128,1), b, dtype = np.float32)
+        chrome_image = cv2.merge([grayscale, other, b_channel])
+        
+       # chrome_image = cv2.cvtColor(chrome_image, cv2.COLOR_LAB2RGB)
+        return chrome_image
+    
+    elif a_or_b == 2:
+        #use both channels
+        a_channel = np.full((128,128,1), a, dtype = np.float32)
+        b_channel = np.full((128,128,1), b, dtype = np.float32)
+        chrome_image = cv2.merge([grayscale, a_channel, b_channel])
+        
+      #  chrome_image = cv2.cvtColor(chrome_image, cv2.COLOR_LAB2RGB)
+        return chrome_image
+        
     
 
 
@@ -76,6 +107,7 @@ class chrominance_reg(nn.Module):
         self.mod1 = nn.Sequential(
              nn.Conv2d(3, 6, kernel_size = 3, stride = 2, padding = 1),
              nn.ReLU(),
+            
              nn.AvgPool2d(kernel_size = (1,1), stride = 1)
              )
         #64x64
@@ -144,6 +176,7 @@ class chrominance_reg(nn.Module):
 #https://www.kaggle.com/code/anirbanmalick/image-colorization-pytorch-conv-autoencoder
 
 home_dir = os.getcwd() 
+egg = cv2.imread(home_dir + slash + 'ColorfulOriginal' + slash + 'Brinjal' + slash + 'Brinjal1.jpg')
 #change this parameter depending on which album you want
 target_album = 'LAB_TEST_FACES'
 
@@ -192,10 +225,17 @@ sample_a, sample_b, sample_grayscale = train_dataset[0]
 chrome = regressor(sample_grayscale)
 
 
+chrome_a = makeChrome(0, chrome[0][0].detach().numpy(), None)
+chrome_b = makeChrome(1, None, chrome[0][1].detach().numpy())
+chrome_all = makeChrome(2, chrome[0][0].detach().numpy(), chrome[0][1].detach().numpy())
+
 #run color regressor
 lr = 0.01
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(regressor.parameters(), lr)
+
+
+#display predicted chrominances
 
 
 
@@ -238,7 +278,7 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
             outputs = regressor(np.asarray(input_l))
             loss = criterion(outputs, labels)
             
-            optimizer.zero_grad()
+           
             loss.backward()
             optimizer.step()
             
