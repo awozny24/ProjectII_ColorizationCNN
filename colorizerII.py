@@ -47,9 +47,9 @@ import torchvision.transforms as T
 ****SET IMPORTANT HYPERPARAMETERS HERE***
 
 '''
-batch_size = 20
-Epochs = 10
-lr = 0.02
+batch_size = 32
+Epochs = 100
+lr = 0.01
 criterion = nn.MSELoss()
 torch.set_default_tensor_type(torch.FloatTensor)
 
@@ -276,6 +276,7 @@ optimizer = torch.optim.Adam(color.parameters(), lr)
 train_loss = []
 validation_loss = []
 val_ticker = 0
+last_loss = 20000
 
 # rows, cols = (2, Epochs)
 # stored_images = [[0 for i in range(cols)] for j in range(rows)]
@@ -324,9 +325,9 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         # print statistics
         running_loss += loss.item()
                 
-        train_loss.append(loss)
+    train_loss.append(loss)
 
-    if epoch % 5 == 0:
+    if epoch % 10 == 0:
         running_val_loss = 0.0
         with torch.no_grad():
             color.eval()
@@ -341,8 +342,9 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         print("Number Of Images Tested =", len(val_loader))
         print("\nValidation Loss =", (running_val_loss/len(val_loader)))
 
-        if running_val_loss > running_loss and val_ticker > 3:
-            torch.save(color.state_dict(), './chkpt/color_model.pt') 
+        if (running_val_loss/len(val_loader)) - last_loss >= 0.1:
+            torch.save(color.state_dict(), f"./chkpt/color_model_{epoch}.pt")
+        last_loss = (running_val_loss/len(val_loader))
 
         # once done with a loop I want to print out the target image 
         # # and colorized image for comparison    
@@ -361,8 +363,8 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         #plt.imshow(sample_colorized)
         # stored_images[0][epoch] = sample_target
         # stored_images[1][epoch] = sample_colorized
-        cv2.imwrite('./chkpt/images/target_image_{Epoch}.png',sample_target)
-        cv2.imwrite('./chkpt/images/output_image_{Epoch}.png',sample_colorized) # -hmk
+        cv2.imwrite(f"./chkpt/images/target_image_{epoch}.png",sample_target)
+        cv2.imwrite(f"./chkpt/images/output_image_{epoch}.png",sample_colorized) # -hmk
 
     print('Epoch {} of {}, Train Loss: {:.3f}'.format( epoch+1, Epochs, running_loss/len(train_loader)))
 
@@ -371,6 +373,11 @@ print('Finished Training')
 train_loss = [epoch.cpu().detach().numpy() for epoch in train_loss] # changed var from val bc this has nothing to do with validation
 validation_loss = [val.cpu().detach().numpy() for val in validation_loss]
 plt.figure()
-plt.plot(train_loss, 'r')
-plt.plot(validation_loss, np.arange(0,Epochs,5),'b')
+plt.plot(np.arange(0,Epochs,1), train_loss, 'r', label='Training Loss')
+plt.plot(np.arange(0,Epochs,10), validation_loss,'b', label='Validation Loss')
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Training and Validation Loss")
+plt.legend(loc="upper right")
+plt.savefig(f"./chkpt/training-val-plot.png")
 plt.show()
