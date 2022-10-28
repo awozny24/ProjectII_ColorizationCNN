@@ -20,6 +20,7 @@ Created on Thu Oct 20 12:24:56 2022
 """
 import cv2
 import os
+from sklearn.utils import shuffle
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -204,7 +205,7 @@ class colorizer(nn.Module):
         out = self.upsamp5(out)
         #collapse dimension 1 along dimension 0 using flatten
         out = torch.flatten(out, 0, 1)
-       #out = nn.linear(2, batch_size)
+       #out = nn.linear(2, size)
        # out = out.detach().numpy()
        # out = make_numpy(out)
        # out = np.uint8(out)
@@ -232,6 +233,7 @@ grouped_data = np.asarray(grouped_data)
     
 #prepare grouped data for training and test
 train_images, test_images = train_test_split(grouped_data, test_size = 0.3)
+train_images, val_images = train_test_split(train_images, test_size = 0.1)
 
 #further separate them into X's and Y's where L is the input and AB are the targets (LAB colorspace)
 #remember the dimensions are Number of grouped images X Index of image
@@ -243,20 +245,25 @@ y_train = train_images[:, 0:2, :, :, :]
 X_test = test_images[:, 2, :, :, :]
 y_test = test_images[:, 0:2, :, :, :]
 
-
+X_val = test_images[:, 2, :, :, :]
+y_val = test_images[:, 0:2, :, :, :]
 
 #prepare datasets for images
 train_dataset = imageDataset(X_train, y_train)
 test_dataset = imageDataset(X_test, y_test)
+val_dataset = imageDataset(X_val, y_val)
 
 #prepare dataloaders for batch training
-train_loader = torch.utils.data.DataLoader(dataset = train_dataset, batch_size = batch_size)
-test_loader = torch.utils.data.DataLoader(dataset = test_dataset, batch_size = batch_size)
+train_loader = torch.utils.data.DataLoader(dataset = train_dataset, batch_size = batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset = test_dataset,  batch_size = batch_size, shuffle=True)
+val_loader = torch.utils.data.DataLoader(dataset = val_dataset,  batch_size = batch_size, shuffle=True)
 
-
+# select GPU / CPU -hmk
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+print('Device:', device)
 
 #call the regressor on one set of images in the X_train dataset
-color = colorizer()
+color = colorizer().to(device)
 
 
 #run color regressor
@@ -267,79 +274,103 @@ optimizer = torch.optim.Adam(color.parameters(), lr)
 #training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
 #loss_values = []
 train_loss = []
+validation_loss = []
+val_ticker = 0
 
-rows, cols = (2, Epochs)
-stored_images = [[0 for i in range(cols)] for j in range(rows)]
+# rows, cols = (2, Epochs)
+# stored_images = [[0 for i in range(cols)] for j in range(rows)]
 
 for epoch in range(Epochs):  # loop over the dataset multiple times
     color.train()
    
     running_loss = 0.0
-    #I want batch to be of length 10 not 3 why?
-    for i, batch in enumerate(train_loader):
+    #I want batch to be of length 10 not 3 why? self.a[index], self.b[index], self.l[index]
+    for i, img in enumerate(train_loader):
         
-        batch_a = batch[0]
-        batch_b = batch[1]
-        batch_l = batch[2]
+        a = img[0]
+        b = img[1]
+        l = img[2]
     
         
         #each batch is ten images so loop through all the images per batch
+        # no!!!! this defeats the point of batches if you loop through each image you've essentially made your batch size 1 -hmk
         
-        for index, images in enumerate(batch):
+        # for index, images in enumerate(batch):
             # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
-          #different images!
+            # different images!
        
      
-            #labels = torch.tensor((label_a, label_b))
-            #might not be necessary to drop duplicates
-            labels = torch.stack((batch_a, batch_b), 1)
-            labels = labels.float()
+        #labels = torch.tensor((label_a, label_b))
+        #might not be necessary to drop duplicates
+        labels = torch.stack((a, b), 1).float().to(device)
+        input_l = torch.unsqueeze(l, 1).to(device)
+    
+        # zero the parameter gradients
+        optimizer.zero_grad()
         
-            # zero the parameter gradients
-            optimizer.zero_grad()
-            input_l = torch.unsqueeze(batch_l, 1)
-            
-            
-            # forward + backward + optimize
-            outputs = color((input_l))
-           # outputs = outputs.view(2, batch_size)
-           
-           #flatten labels along dimension 0
-            labels = torch.flatten(labels, 0, 1)
-            
-            
-            loss = criterion(outputs, labels)
+        # forward + backward + optimize
+        outputs = color((input_l))
+        # outputs = outputs.view(2, size)
         
-            loss.backward()
-            optimizer.step()
-            
-            # print statistics
-            running_loss += loss.item()
-            
-            #once done with a loop I want to print out the target image 
-            #and colorized image for comparison    
-            if index == 0:
-                sample_target = cv2.merge([batch_l[0].detach().numpy(), batch_a[0].detach().numpy(), batch_b[0].detach().numpy()]) 
-                sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
-                #plt.imshow(sample_target)
+        #flatten labels along dimension 0
+        labels = torch.flatten(labels, 0, 1)
+        
+        
+        loss = criterion(outputs, labels)
+    
+        loss.backward()
+        optimizer.step()
+        
+        # print statistics
+        running_loss += loss.item()
                 
-                sample_target = cv2.merge([batch_l[0].detach().numpy(), batch_a[0].detach().numpy(), batch_b[0].detach().numpy()]) 
-                sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
-                #plt.imshow(sample_target)
-            
-                colorized_a = outputs[0].detach().numpy().astype(np.uint8)
-                colorized_b = outputs[1].detach().numpy().astype(np.uint8)
-                sample_colorized = cv2.merge([batch_l[0].detach().numpy(), colorized_a, colorized_b])
-                sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
-                #plt.imshow(sample_colorized)
-                stored_images[0][epoch] = sample_target
-                stored_images[1][epoch] = sample_colorized
-                
-    train_loss.append(loss)
-    print('Epoch {} of {}, Train Loss: {:.3f}'.format( epoch+1, Epochs, loss))
-          
-      
+        train_loss.append(loss)
+
+    if epoch % 5 == 0:
+        running_val_loss = 0.0
+        with torch.no_grad():
+            color.eval()
+            for data in val_loader:
+                val_l = torch.unsqueeze(data[2], 1).to(device)
+                val_outputs = color(val_l)
+                val_labels = torch.stack((data[0], data[1]), 1).float().to(device)
+                val_loss = criterion(val_outputs, torch.flatten(val_labels, 0, 1))
+                running_val_loss += val_loss
+
+        validation_loss.append(running_val_loss)
+        print("Number Of Images Tested =", len(val_loader))
+        print("\nValidation Loss =", (running_val_loss/len(val_loader)))
+
+        if running_val_loss > running_loss and val_ticker > 3:
+            torch.save(color.state_dict(), './chkpt/color_model.pt') 
+
+        # once done with a loop I want to print out the target image 
+        # # and colorized image for comparison    
+        # sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
+        # sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+        #plt.imshow(sample_target)
+        
+        sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
+        sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+        #plt.imshow(sample_target)
+    
+        colorized_a = outputs[0].cpu().detach().numpy().astype(np.uint8)
+        colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
+        sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
+        sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
+        #plt.imshow(sample_colorized)
+        # stored_images[0][epoch] = sample_target
+        # stored_images[1][epoch] = sample_colorized
+        cv2.imwrite('./chkpt/images/target_image_{Epoch}.png',sample_target)
+        cv2.imwrite('./chkpt/images/output_image_{Epoch}.png',sample_colorized) # -hmk
+
+    print('Epoch {} of {}, Train Loss: {:.3f}'.format( epoch+1, Epochs, running_loss/len(train_loader)))
+
 
 print('Finished Training')
-train_loss = [val.detach().numpy() for val in train_loss]
-plt.plot(train_loss)
+train_loss = [epoch.cpu().detach().numpy() for epoch in train_loss] # changed var from val bc this has nothing to do with validation
+validation_loss = [val.cpu().detach().numpy() for val in validation_loss]
+plt.figure()
+plt.plot(train_loss, 'r')
+plt.plot(validation_loss, np.arange(0,Epochs,5),'b')
+plt.show()
