@@ -343,7 +343,8 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         print("\nValidation Loss =", (running_val_loss/len(val_loader)))
 
         if (running_val_loss/len(val_loader)) - last_loss >= 0.1:
-            torch.save(color.state_dict(), f"./chkpt/color_model_{epoch}.pt")
+            path = f"./chkpt/color_model_{epoch}.pt"
+            torch.save(color.state_dict(), path)
         last_loss = (running_val_loss/len(val_loader))
 
         # once done with a loop I want to print out the target image 
@@ -381,3 +382,18 @@ plt.title("Training and Validation Loss")
 plt.legend(loc="upper right")
 plt.savefig(f"./chkpt/training-val-plot.png")
 plt.show()
+
+# testing time!!
+color.load_state_dict(torch.load(path))
+
+running_test_loss = 0.0
+with torch.no_grad():
+    color.eval()
+    for data in test_loader:
+        test_l = torch.unsqueeze(data[2], 1).to(device)
+        test_outputs = color(test_l)
+        test_labels = torch.stack((data[0], data[1]), 1).float().to(device)
+        test_loss = criterion(test_outputs, torch.flatten(test_labels, 0, 1))
+        running_test_loss += test_loss
+print("Number Of Images Tested =", len(test_loader))
+print("\nTest Loss =", (running_test_loss/len(test_loader)))
