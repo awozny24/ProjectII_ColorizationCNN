@@ -214,7 +214,7 @@ grouped_data = list(group(image_data, album_length))
 grouped_data = np.asarray(grouped_data)
     
 #prepare grouped data for training and test
-train_images, test_images = train_test_split(grouped_data, test_size = 0.3)
+train_images, test_images = train_test_split(grouped_data, test_size = 0.1)
 train_images, val_images = train_test_split(train_images, test_size = 0.1)
 
 #further separate them into X's and Y's where L is the input and AB are the targets (LAB colorspace)
@@ -321,8 +321,8 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
                 running_val_loss += val_loss
 
         validation_loss.append(running_val_loss)
-        print("Number Of Images Tested =", len(val_loader))
-        print("\nValidation Loss =", (running_val_loss/len(val_loader)))
+        print("Number Of Images Tested =", len(val_loader)*batch_size)
+        print("\nValidation MSE Loss =", (running_val_loss/len(val_loader)))
 
         if (running_val_loss/len(val_loader)) - last_loss >= 0.1:
             path = f"./chkpt_{album}/color_model_{epoch}.pt"
@@ -349,7 +349,7 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
         cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
 
-    print('Epoch {} of {}, Train Loss: {:.3f}'.format( epoch+1, Epochs, running_loss/len(train_loader)))
+    print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, Epochs, running_loss/len(train_loader)))
 
 
 print('Finished Training')
@@ -377,5 +377,6 @@ with torch.no_grad():
         test_labels = torch.stack((data[0], data[1]), 1).float().to(device)
         test_loss = criterion(test_outputs, torch.flatten(test_labels, 0, 1))
         running_test_loss += test_loss
-print("Number Of Images Tested =", len(test_loader))
-print("\nTest Loss =", (running_test_loss/len(test_loader)))
+
+print("\nNumber Of Images Tested =", len(test_loader)*batch_size)
+print("Testing MSE Loss =", (running_test_loss/len(test_loader)))
