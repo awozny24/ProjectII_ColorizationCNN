@@ -4,29 +4,15 @@ Created on Tue Oct 25 22:04:59 2022
 
 @author: Timothy Lu
 """
+# also hannah kirkland
 
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Oct 25 11:53:02 2022
-
-@author: LuTimothy
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 20 12:24:56 2022
-
-@author: Timothy Lu
-"""
 import cv2
 import os
 from sklearn.utils import shuffle
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import glob
 # For our model
-import torchvision.models as models
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -35,13 +21,6 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.functional import normalize
 from sys import platform
-from itertools import combinations
-
-# For color conversions
-from skimage.io import imread
-from skimage.color import rgb2lab, lab2rgb
-
-import torchvision.transforms as T
 
 ''''
 ****SET IMPORTANT HYPERPARAMETERS HERE***
@@ -224,7 +203,7 @@ target_album = 'LAB_TEST_FACES'
 if target_album == 'LAB_TEST_FACES':
     album = 'faces'
 else:
-    album = 'fruit'
+    album = target_album
 
 
 image_data = load(home_dir + slash + target_album + slash + '*.jpg')
@@ -257,9 +236,9 @@ test_dataset = imageDataset(X_test, y_test)
 val_dataset = imageDataset(X_val, y_val)
 
 #prepare dataloaders for batch training
-train_loader = torch.utils.data.DataLoader(dataset = train_dataset, batch_size = batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset = test_dataset,  batch_size = batch_size, shuffle=True)
-val_loader = torch.utils.data.DataLoader(dataset = val_dataset,  batch_size = batch_size, shuffle=True)
+train_loader = DataLoader(dataset = train_dataset, batch_size = batch_size, shuffle=True)
+test_loader = DataLoader(dataset = test_dataset,  batch_size = batch_size, shuffle=True)
+val_loader = DataLoader(dataset = val_dataset,  batch_size = batch_size, shuffle=True)
 
 # select GPU / CPU -hmk
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -288,10 +267,10 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
     color.train()
    
     running_loss = 0.0
-    #I want batch to be of length 10 not 3 why? self.a[index], self.b[index], self.l[index]
+    #I want batch to be of length 10 not 3 why?
     for i, img in enumerate(train_loader):
         
-        a = img[0]
+        a = img[0] # i changed these for clarity and less typing i didn't want to type batch everytime -hmk
         b = img[1]
         l = img[2]
     
@@ -364,7 +343,7 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
         sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
         sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
-        #plt.imshow(sample_colorized)
+        #plt.imshow(sample_colorized)                   dont need these anymore bc im just saving the images as pngs instead -hmk
         # stored_images[0][epoch] = sample_target
         # stored_images[1][epoch] = sample_colorized
         cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
@@ -374,9 +353,9 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
 
 
 print('Finished Training')
-train_loss = [epoch.cpu().detach().numpy() for epoch in train_loss] # changed var from val bc this has nothing to do with validation
+train_loss = [epoch.cpu().detach().numpy() for epoch in train_loss] # changed var from val bc this has nothing to do with validation -hmk
 validation_loss = [val.cpu().detach().numpy() for val in validation_loss]
-plt.figure()
+plt.figure() # just added the val line and labels to make it pretty and saved it so it can be in the report -hmk
 plt.plot(np.arange(0,Epochs,1), train_loss, 'r', label='Training Loss')
 plt.plot(np.arange(0,Epochs,10), validation_loss,'b', label='Validation Loss')
 plt.xlabel("Epoch")
@@ -386,7 +365,7 @@ plt.legend(loc="upper right")
 plt.savefig(f"./chkpt_{album}/training-val-plot.png")
 plt.show()
 
-# testing time!!
+# testing time!! -hmk
 color.load_state_dict(torch.load(path))
 
 running_test_loss = 0.0
