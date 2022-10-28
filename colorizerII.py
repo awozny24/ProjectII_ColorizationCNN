@@ -321,8 +321,8 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
                 running_val_loss += val_loss
 
         validation_loss.append(running_val_loss)
-        print("Number Of Images Tested =", len(val_loader)*batch_size)
-        print("\nValidation MSE Loss =", (running_val_loss/len(val_loader)))
+        print("\nNumber Of Images Tested =", len(val_loader)*batch_size)
+        print("Validation MSE Loss =", (running_val_loss/len(val_loader)))
 
         if (running_val_loss/len(val_loader)) - last_loss >= 0.1:
             path = f"./chkpt_{album}/color_model_{epoch}.pt"
