@@ -295,7 +295,7 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
 
     train_loss.append(loss)
 
-    if epoch % 10 == 0:
+    if epoch % 10 == 0: # added validation -hmk
         running_val_loss = 0.0
         with torch.no_grad():
             regressor.eval()
