@@ -221,7 +221,10 @@ class colorizer(nn.Module):
 home_dir = os.getcwd() 
 #change this parameter depending on which album you want
 target_album = 'LAB_TEST_FACES'
-
+if target_album == 'LAB_TEST_FACES':
+    album = 'faces'
+else:
+    album = 'fruit'
 
 
 image_data = load(home_dir + slash + target_album + slash + '*.jpg')
@@ -343,7 +346,7 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         print("\nValidation Loss =", (running_val_loss/len(val_loader)))
 
         if (running_val_loss/len(val_loader)) - last_loss >= 0.1:
-            path = f"./chkpt/color_model_{epoch}.pt"
+            path = f"./chkpt_{album}/color_model_{epoch}.pt"
             torch.save(color.state_dict(), path)
         last_loss = (running_val_loss/len(val_loader))
 
@@ -364,8 +367,8 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         #plt.imshow(sample_colorized)
         # stored_images[0][epoch] = sample_target
         # stored_images[1][epoch] = sample_colorized
-        cv2.imwrite(f"./chkpt/images/target_image_{epoch}.png",sample_target)
-        cv2.imwrite(f"./chkpt/images/output_image_{epoch}.png",sample_colorized) # -hmk
+        cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
+        cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
 
     print('Epoch {} of {}, Train Loss: {:.3f}'.format( epoch+1, Epochs, running_loss/len(train_loader)))
 
@@ -380,7 +383,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
 plt.legend(loc="upper right")
-plt.savefig(f"./chkpt/training-val-plot.png")
+plt.savefig(f"./chkpt_{album}/training-val-plot.png")
 plt.show()
 
 # testing time!!
