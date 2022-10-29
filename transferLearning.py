@@ -15,8 +15,8 @@ import os
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 
-# from colorizerII import colorizer
-from cnnColorizer import colorizer, trainModel
+from colorizerII import colorizer
+# from cnnColorizer import colorizer, trainModel
 
 
 def load(folder):
@@ -37,7 +37,7 @@ def LoadLabInOrder(folder):
         files[i] = f[0:f.rfind('.')-1]
     maxFileNum = max([int(f) for f in files])
     
-    # for each file index (e.g. ['0L.jpg', '0a.jpg', '0b.jpg'])
+    # for each file index (e.g. ['0a.jpg', '0b.jpg', '0L.jpg'])
     data = []
     for i in range(0, maxFileNum):
         # grab files in order 'a', 'b', 'L'
@@ -224,9 +224,151 @@ food_train_loader = torch.utils.data.DataLoader(dataset = food_train_dataset, ba
 food_test_loader = torch.utils.data.DataLoader(dataset = food_test_dataset,  batch_size = batch_size, shuffle=True)
 food_val_loader = torch.utils.data.DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
 
+# train model
+def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
 
-cModel = torch.load('./saved_models/model_architecture_11.pt')
+    #training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+    #loss_values = []
+    train_loss = []
+    validation_loss = []
+    val_ticker = 0
+    last_loss = 20000
+
+    # rows, cols = (2, Epochs)
+    # stored_images = [[0 for i in range(cols)] for j in range(rows)]
+
+    for epoch in range(epochs):  # loop over the dataset multiple times
+        color.train()
+    
+        running_loss = 0.0
+        #I want batch to be of length 10 not 3 why?
+        for i, img in enumerate(trainLoader):
+            
+            a = img[0] # i changed these for clarity and less typing i didn't want to type batch everytime -hmk
+            b = img[1]
+            l = img[2]
         
+            
+            #each batch is ten images so loop through all the images per batch
+            # no!!!! this defeats the point of batches if you loop through each image you've essentially made your batch size 1 -hmk
+            
+            # for index, images in enumerate(batch):
+                # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
+                # different images!
+        
+        
+            #labels = torch.tensor((label_a, label_b))
+            #might not be necessary to drop duplicates
+            labels = torch.stack((a, b), 1).float().to(device)
+            input_l = torch.unsqueeze(l, 1).to(device)
+        
+            # zero the parameter gradients
+            optimizer.zero_grad()
+            
+            # forward + backward + optimize
+            outputs = color((input_l))
+            # outputs = outputs.view(2, size)
+            
+            #flatten labels along dimension 0
+            labels = torch.flatten(labels, 0, 1)
+            
+            
+            loss = criterion(outputs, labels)
+        
+            loss.backward()
+            optimizer.step()
+            
+            # print statistics
+            running_loss += loss.item()
+                    
+        train_loss.append(loss)
+
+        if epoch % 10 == 0:
+            running_val_loss = 0.0
+            with torch.no_grad():
+                color.eval()
+                for data in valLoader:
+                    val_l = torch.unsqueeze(data[2], 1).to(device)
+                    val_outputs = color(val_l)
+                    val_labels = torch.stack((data[0], data[1]), 1).float().to(device)
+                    val_loss = criterion(val_outputs, torch.flatten(val_labels, 0, 1))
+                    running_val_loss += val_loss
+
+            validation_loss.append(running_val_loss)
+            print("\nNumber Of Images Tested =", len(valLoader)*batch_size)
+            print("Validation MSE Loss =", (running_val_loss/len(valLoader)))
+
+            if (running_val_loss/len(valLoader)) - last_loss >= 0.1:
+                path = f"./chkpt_{album}/color_model_{epoch}.pt"
+                torch.save(color.state_dict(), path)
+            last_loss = (running_val_loss/len(valLoader))
+
+            # once done with a loop I want to print out the target image 
+            # # and colorized image for comparison    
+            # sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
+            # sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+            #plt.imshow(sample_target)
+            
+            sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+            #plt.imshow(sample_target)
+        
+            colorized_a = outputs[0].cpu().detach().numpy().astype(np.uint8)
+            colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
+            sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
+            sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
+            #plt.imshow(sample_colorized)                   dont need these anymore bc im just saving the images as pngs instead -hmk
+            # stored_images[0][epoch] = sample_target
+            # stored_images[1][epoch] = sample_colorized
+            cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
+            cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
+
+        print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
+
+
+# load model
+# cModel = torch.load('../saved_models/model_architecture_11.pt')
+path = "../color_model_80.pt"
+cModel = colorizer()
+cModel.load_state_dict(torch.load(path))
+path = os.getcwd() + "/saved_models/model_architecture_11.pt"
+cModel = torch.load(path)
+cModel.eval()
+
+# turn of gradients for layers of model
+for i, param in enumerate(cModel.parameters()):
+    if i != 10:
+        param.requires_grad = False
+
+
+# add layers for training
+cModel.downsamp6 = nn.Sequential(nn.Conv2d(2, 64, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp6.requires_grad = True
+cModel.downsamp7 = nn.Sequential(nn.Conv2d(64, 32, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp7.requires_grad = True
+cModel.downsamp8 = nn.Sequential(nn.Conv2d(32, 16, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp8.requires_grad = True
+cModel.downsamp9 = nn.Sequential(nn.Conv2d(16, 8, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp9.requires_grad = True
+
+cModel.upsamp6 = nn.Sequential(nn.ConvTranspose2d(2, 64, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp6.requires_grad = True
+cModel.upsamp7 = nn.Sequential(nn.ConvTranspose2d(64, 32, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp7.requires_grad = True
+cModel.upsamp8 = nn.Sequential(nn.ConvTranspose2d(32, 16, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp8.requires_grad = True
+cModel.upsamp9 = nn.Sequential(nn.ConvTranspose2d(16, 8, kernel_size=(2, 2), stride=(2, 2)),
+                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
+cModel.downsamp9.requires_grad = True
+
+
 #run color regressor
 lr = 0.01
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -234,15 +376,40 @@ optimizer = torch.optim.Adam(cModel.parameters(), lr)
 trainModel(cModel, food_train_loader, food_val_loader, optimizer, 90, 'fruit')
 
 
+# run model on test data
 running_test_loss = 0.0
+result = []
 with torch.no_grad():
     cModel.eval()
-    for data in food_test_loader:
+    for i, data in enumerate(food_test_loader):
         test_l = torch.unsqueeze(data[2], 1).to(device)
         test_outputs = cModel(test_l)
         test_labels = torch.stack((data[0], data[1]), 1).float().to(device)
         test_loss = criterion(test_outputs, torch.flatten(test_labels, 0, 1))
         running_test_loss += test_loss
+        
+        if i == len(food_test_loader)-1:
+
+            a = data[0]
+            b = data[1]
+            l = data[2]
+
+            test_l = torch.unsqueeze(l, 1).to(device)
+            outputs = cModel(test_l)
+            test_a = torch.unsqueeze(a, 1).to(device)
+            test_b = torch.unsqueeze(b, 1).to(device)
+
 
 print("\nNumber Of Images Tested =", len(food_test_loader)*batch_size)
 print("Testing MSE Loss =", (running_test_loss/len(food_test_loader)))
+
+# display images of last test batch
+if False:
+    for i in range(1, l.shape[0]):
+        colorized_a = outputs[2*i-2].cpu().detach().numpy().astype(np.uint8)
+        colorized_b = outputs[2*i-1].cpu().detach().numpy().astype(np.uint8)
+        colorized_l = l[i].detach().numpy()
+        sample_colorized = cv2.merge([colorized_l, colorized_a, colorized_b])
+        sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
+        plt.figure()
+        plt.imshow(sample_colorized)
