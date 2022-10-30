@@ -15,9 +15,8 @@ import os
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 
-from colorizerII import colorizer
+from tunedColorizer import colorizer
 # from cnnColorizer import colorizer, trainModel
-
 
 def load(folder):
     files = glob.glob(folder)
@@ -135,7 +134,6 @@ def saveLAB(album, folder_name):
       
        count +=1
 
-
 if platform == 'darwin':
     slash = '/'
 else: 
@@ -146,10 +144,7 @@ home_dir = os.getcwd()
 
 #change this parameter depending on which album you want
 target_album = 'ColorfulLab'
-if target_album == 'LAB_TEST_FACES':
-    album = 'faces'
-else:
-    album = 'ColorfulLab'
+album = 'ColorfulLab'
 
 # if the specified directory does not exist, or if it exists but is empty
 if not os.path.exists(home_dir + slash + target_album) \
@@ -173,21 +168,11 @@ if not os.path.exists(home_dir + slash + target_album) \
     # plot rgb image
 #     plt.imshow(cv2.cvtColor(food_images[0], cv2.COLOR_BGR2RGB))
 
-
 batch_size = 32
 Epochs = 100
 lr = 0.01
 criterion = nn.MSELoss()
 torch.set_default_tensor_type(torch.FloatTensor)
-
-home_dir = os.getcwd() 
-#change this parameter depending on which album you want
-target_album = 'ColorfulLab'
-if target_album == 'LAB_TEST_FACES':
-    album = 'faces'
-else:
-    album = 'ColorfulLab'
-
 
 food_data = LoadLabInOrder(home_dir + slash + target_album + slash)
 album_length = len(food_data)
@@ -204,14 +189,14 @@ food_train_images, food_val_images = train_test_split(food_train_images, test_si
 #remember the dimensions are Number of grouped images X Index of image
 #this needs to be flipped
 
-food_X_train = food_train_images[:, 2, :, :, 0]#.astype(dtype=object)
-food_y_train = food_train_images[:, 0:2, :, :, 0]#.astype(dtype=object)
+food_X_train = food_train_images[:, 2, :, :, 0]
+food_y_train = food_train_images[:, 0:2, :, :, 0]
 
-food_X_test = food_test_images[:, 2, :, :, 0]#.astype(dtype=object)
-food_y_test = food_test_images[:, 0:2, :, :, 0]#.astype(dtype=object)
+food_X_test = food_test_images[:, 2, :, :, 0]
+food_y_test = food_test_images[:, 0:2, :, :, 0]
 
-food_X_val = food_test_images[:, 2, :, :, 0]#.astype(dtype=object)
-food_y_val = food_test_images[:, 0:2, :, :, 0]#.astype(dtype=object)
+food_X_val = food_test_images[:, 2, :, :, 0]
+food_y_val = food_test_images[:, 0:2, :, :, 0]
 
 
 #prepare datasets for images
@@ -224,7 +209,7 @@ food_train_loader = torch.utils.data.DataLoader(dataset = food_train_dataset, ba
 food_test_loader = torch.utils.data.DataLoader(dataset = food_test_dataset,  batch_size = batch_size, shuffle=True)
 food_val_loader = torch.utils.data.DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
 
-# train model
+
 def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
 
     #training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
@@ -247,7 +232,6 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
             a = img[0] # i changed these for clarity and less typing i didn't want to type batch everytime -hmk
             b = img[1]
             l = img[2]
-        
             
             #each batch is ten images so loop through all the images per batch
             # no!!!! this defeats the point of batches if you loop through each image you've essentially made your batch size 1 -hmk
@@ -268,10 +252,9 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
             # forward + backward + optimize
             outputs = color((input_l))
             # outputs = outputs.view(2, size)
-            
+                        
             #flatten labels along dimension 0
             labels = torch.flatten(labels, 0, 1)
-            
             
             loss = criterion(outputs, labels)
         
@@ -305,9 +288,10 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
 
             # once done with a loop I want to print out the target image 
             # # and colorized image for comparison    
-            # sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
-            # sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
-            #plt.imshow(sample_target)
+            sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+            # plt.figure()
+            # plt.imshow(sample_target)
             
             sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
             sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
@@ -317,7 +301,8 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
             colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
             sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
             sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
-            #plt.imshow(sample_colorized)                   dont need these anymore bc im just saving the images as pngs instead -hmk
+            # plt.figure()
+            # plt.imshow(sample_colorized)                   # dont need these anymore bc im just saving the images as pngs instead -hmk
             # stored_images[0][epoch] = sample_target
             # stored_images[1][epoch] = sample_colorized
             cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
@@ -326,47 +311,23 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
         print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
 
 
-# load model
+        # from cnnColorizer import colorizer
 # cModel = torch.load('../saved_models/model_architecture_11.pt')
-path = "../color_model_80.pt"
+path = "./saved_models/color_architecture_9.pt"
 cModel = colorizer()
 cModel.load_state_dict(torch.load(path))
-path = os.getcwd() + "/saved_models/model_architecture_11.pt"
-cModel = torch.load(path)
+
 cModel.eval()
-
-# turn of gradients for layers of model
-for i, param in enumerate(cModel.parameters()):
-    if i != 10:
-        param.requires_grad = False
-
-
-# add layers for training
-cModel.downsamp6 = nn.Sequential(nn.Conv2d(2, 64, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp6.requires_grad = True
-cModel.downsamp7 = nn.Sequential(nn.Conv2d(64, 32, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp7.requires_grad = True
-cModel.downsamp8 = nn.Sequential(nn.Conv2d(32, 16, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp8.requires_grad = True
-cModel.downsamp9 = nn.Sequential(nn.Conv2d(16, 8, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp9.requires_grad = True
-
-cModel.upsamp6 = nn.Sequential(nn.ConvTranspose2d(2, 64, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp6.requires_grad = True
-cModel.upsamp7 = nn.Sequential(nn.ConvTranspose2d(64, 32, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp7.requires_grad = True
-cModel.upsamp8 = nn.Sequential(nn.ConvTranspose2d(32, 16, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp8.requires_grad = True
-cModel.upsamp9 = nn.Sequential(nn.ConvTranspose2d(16, 8, kernel_size=(2, 2), stride=(2, 2)),
-                            nn.BatchNorm2d(2, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True))
-cModel.downsamp9.requires_grad = True
+cModel.downsamp1.requires_grad=False
+cModel.downsamp2.requires_grad=False
+cModel.downsamp3.requires_grad=False
+cModel.downsamp4.requires_grad=False
+cModel.downsamp5.requires_grad=False
+cModel.upsamp1.requires_grad=False
+cModel.upsamp2.requires_grad=False
+cModel.upsamp3.requires_grad=False
+cModel.upsamp4.requires_grad=True
+cModel.upsamp5.requires_grad=True
 
 
 #run color regressor
@@ -375,8 +336,6 @@ device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 optimizer = torch.optim.Adam(cModel.parameters(), lr)
 trainModel(cModel, food_train_loader, food_val_loader, optimizer, 90, 'fruit')
 
-
-# run model on test data
 running_test_loss = 0.0
 result = []
 with torch.no_grad():
@@ -399,17 +358,16 @@ with torch.no_grad():
             test_a = torch.unsqueeze(a, 1).to(device)
             test_b = torch.unsqueeze(b, 1).to(device)
 
-
 print("\nNumber Of Images Tested =", len(food_test_loader)*batch_size)
 print("Testing MSE Loss =", (running_test_loss/len(food_test_loader)))
 
-# display images of last test batch
-if False:
-    for i in range(1, l.shape[0]):
-        colorized_a = outputs[2*i-2].cpu().detach().numpy().astype(np.uint8)
-        colorized_b = outputs[2*i-1].cpu().detach().numpy().astype(np.uint8)
-        colorized_l = l[i].detach().numpy()
-        sample_colorized = cv2.merge([colorized_l, colorized_a, colorized_b])
-        sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
-        plt.figure()
-        plt.imshow(sample_colorized)
+for i in range(1, l.shape[0]):
+    colorized_a = outputs[2*i-2].cpu().detach().numpy().astype(np.uint8)
+    colorized_b = outputs[2*i-1].cpu().detach().numpy().astype(np.uint8)
+    colorized_l = l[i-1].detach().numpy()
+    sample_colorized = cv2.merge([colorized_l, colorized_a, colorized_b])
+    sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
+    cv2.imwrite(f"./chkpt_{album}/sample_results/output_image_{i}.png",sample_colorized)
+    # plt.figure()
+    # plt.imshow(sample_colorized)
+    # plt.title(str(i))
