@@ -16,6 +16,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 
 from tunedColorizer import colorizer
+from pytorchtool import EarlyStopping
 # from cnnColorizer import colorizer, trainModel
 
 def load(folder):
@@ -134,6 +135,124 @@ def saveLAB(album, folder_name):
       
        count +=1
 
+
+
+def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album):
+
+    early_stopping = EarlyStopping(patience=patience, verbose=True, path=f'./chkpt_{album}/checkpoint.pt')
+
+    #training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+    #loss_values = []
+    train_loss = []
+    validation_loss = []
+    val_ticker = 0
+    last_loss = 20000
+
+    # rows, cols = (2, Epochs)
+    # stored_images = [[0 for i in range(cols)] for j in range(rows)]
+
+    for epoch in range(epochs):  # loop over the dataset multiple times
+        color.train()
+    
+        running_loss = 0.0
+        #I want batch to be of length 10 not 3 why?
+        for i, img in enumerate(trainLoader):
+            
+            a = img[0] # i changed these for clarity and less typing i didn't want to type batch everytime -hmk
+            b = img[1]
+            l = img[2]
+            
+            #each batch is ten images so loop through all the images per batch
+            # no!!!! this defeats the point of batches if you loop through each image you've essentially made your batch size 1 -hmk
+            
+            # for index, images in enumerate(batch):
+                # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
+                # different images!
+        
+        
+            #labels = torch.tensor((label_a, label_b))
+            #might not be necessary to drop duplicates
+            labels = torch.stack((a, b), 1).float().to(device)
+            input_l = torch.unsqueeze(l, 1).to(device)
+        
+            # zero the parameter gradients
+            optimizer.zero_grad()
+            
+            # forward + backward + optimize
+            outputs = color((input_l))
+            # outputs = outputs.view(2, size)
+                        
+            #flatten labels along dimension 0
+            labels = torch.flatten(labels, 0, 1)
+            
+            loss = criterion(outputs, labels)
+        
+            loss.backward()
+            optimizer.step()
+            
+            # print statistics
+            running_loss += loss.item()
+                    
+        train_loss.append(loss)
+
+        # if epoch % 10 == 0:
+        running_val_loss = 0.0
+        with torch.no_grad():
+            color.eval()
+            for data in valLoader:
+                val_l = torch.unsqueeze(data[2], 1).to(device)
+                val_outputs = color(val_l)
+                val_labels = torch.stack((data[0], data[1]), 1).float().to(device)
+                val_loss = criterion(val_outputs, torch.flatten(val_labels, 0, 1))
+                running_val_loss += val_loss
+
+        validation_loss.append(running_val_loss)
+        print("\nNumber Of Images Tested =", len(valLoader)*batch_size)
+        print("Validation MSE Loss =", (running_val_loss/len(valLoader)))
+
+        if epoch % 10 == 0:
+            if (running_val_loss/len(valLoader)) - last_loss >= 0.1:
+                path = f"./chkpt_{album}/color_model_{epoch}.pt"
+                torch.save(color.state_dict(), path)
+        last_loss = (running_val_loss/len(valLoader))
+
+        if epoch % 10 == 0:
+            # once done with a loop I want to print out the target image 
+            # # and colorized image for comparison    
+            sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+            # plt.figure()
+            # plt.imshow(sample_target)
+            
+            sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+            #plt.imshow(sample_target)
+        
+            colorized_a = outputs[0].cpu().detach().numpy().astype(np.uint8)
+            colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
+            sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
+            sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
+            # plt.figure()
+            # plt.imshow(sample_colorized)                   # dont need these anymore bc im just saving the images as pngs instead -hmk
+            # stored_images[0][epoch] = sample_target
+            # stored_images[1][epoch] = sample_colorized
+            cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
+            cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
+
+        # use early stopping to prevent overfitting
+        early_stopping(running_val_loss/len(valLoader), color)
+        if early_stopping.early_stop:
+            print("Early stopping")
+            break
+        
+    # load the last checkpoint with the best model
+    color.load_state_dict(torch.load('checkpoint.pt'))
+    
+    print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
+
+    return color
+
+
 if platform == 'darwin':
     slash = '/'
 else: 
@@ -210,107 +329,6 @@ food_test_loader = torch.utils.data.DataLoader(dataset = food_test_dataset,  bat
 food_val_loader = torch.utils.data.DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
 
 
-def trainModel(color, trainLoader, valLoader, optimizer, epochs, album):
-
-    #training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
-    #loss_values = []
-    train_loss = []
-    validation_loss = []
-    val_ticker = 0
-    last_loss = 20000
-
-    # rows, cols = (2, Epochs)
-    # stored_images = [[0 for i in range(cols)] for j in range(rows)]
-
-    for epoch in range(epochs):  # loop over the dataset multiple times
-        color.train()
-    
-        running_loss = 0.0
-        #I want batch to be of length 10 not 3 why?
-        for i, img in enumerate(trainLoader):
-            
-            a = img[0] # i changed these for clarity and less typing i didn't want to type batch everytime -hmk
-            b = img[1]
-            l = img[2]
-            
-            #each batch is ten images so loop through all the images per batch
-            # no!!!! this defeats the point of batches if you loop through each image you've essentially made your batch size 1 -hmk
-            
-            # for index, images in enumerate(batch):
-                # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
-                # different images!
-        
-        
-            #labels = torch.tensor((label_a, label_b))
-            #might not be necessary to drop duplicates
-            labels = torch.stack((a, b), 1).float().to(device)
-            input_l = torch.unsqueeze(l, 1).to(device)
-        
-            # zero the parameter gradients
-            optimizer.zero_grad()
-            
-            # forward + backward + optimize
-            outputs = color((input_l))
-            # outputs = outputs.view(2, size)
-                        
-            #flatten labels along dimension 0
-            labels = torch.flatten(labels, 0, 1)
-            
-            loss = criterion(outputs, labels)
-        
-            loss.backward()
-            optimizer.step()
-            
-            # print statistics
-            running_loss += loss.item()
-                    
-        train_loss.append(loss)
-
-        if epoch % 10 == 0:
-            running_val_loss = 0.0
-            with torch.no_grad():
-                color.eval()
-                for data in valLoader:
-                    val_l = torch.unsqueeze(data[2], 1).to(device)
-                    val_outputs = color(val_l)
-                    val_labels = torch.stack((data[0], data[1]), 1).float().to(device)
-                    val_loss = criterion(val_outputs, torch.flatten(val_labels, 0, 1))
-                    running_val_loss += val_loss
-
-            validation_loss.append(running_val_loss)
-            print("\nNumber Of Images Tested =", len(valLoader)*batch_size)
-            print("Validation MSE Loss =", (running_val_loss/len(valLoader)))
-
-            if (running_val_loss/len(valLoader)) - last_loss >= 0.1:
-                path = f"./chkpt_{album}/color_model_{epoch}.pt"
-                torch.save(color.state_dict(), path)
-            last_loss = (running_val_loss/len(valLoader))
-
-            # once done with a loop I want to print out the target image 
-            # # and colorized image for comparison    
-            sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
-            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
-            # plt.figure()
-            # plt.imshow(sample_target)
-            
-            sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
-            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
-            #plt.imshow(sample_target)
-        
-            colorized_a = outputs[0].cpu().detach().numpy().astype(np.uint8)
-            colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
-            sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
-            sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
-            # plt.figure()
-            # plt.imshow(sample_colorized)                   # dont need these anymore bc im just saving the images as pngs instead -hmk
-            # stored_images[0][epoch] = sample_target
-            # stored_images[1][epoch] = sample_colorized
-            cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
-            cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
-
-        print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
-
-
         # from cnnColorizer import colorizer
 # cModel = torch.load('../saved_models/model_architecture_11.pt')
 path = "./saved_models/color_architecture_9.pt"
@@ -334,7 +352,7 @@ cModel.upsamp5.requires_grad=True
 lr = 0.01
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 optimizer = torch.optim.Adam(cModel.parameters(), lr)
-trainModel(cModel, food_train_loader, food_val_loader, optimizer, 90, 'fruit')
+trainModel(cModel, food_train_loader, food_val_loader, optimizer, epochs=90, patience=20 album='fruit')
 
 running_test_loss = 0.0
 result = []
