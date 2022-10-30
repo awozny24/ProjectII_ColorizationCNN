@@ -239,16 +239,20 @@ grayscale_path = path + slash + 'gray'
 #     print(name)    
 
 
-album_faces = load(face_path + slash +'*.jpg')
-# album_colors = load(originals_path + slash + '**' + slash +'*.jpg')
+# album_faces = load(face_path + slash +'*.jpg')
+album_colors = load(originals_path + slash + '**' + slash +'*.jpg')
 # album_gray = load(grayscale_path + slash + '**' + slash +'*.jpg')
 
 #note album_faces is already size 128x128 does not need to be resized
-album_faces = convert_tensor(album_faces)
+# album_faces = convert_tensor(album_faces)
+album_colors = resize(album_colors)
+#album_colors = convert_tensor(album_colors)
 
-lab_faces = convert_LAB(album_faces)
+lab_colors = convert_LAB(album_colors)
+saveLAB(lab_colors, 'LAB_COLORS')
+#lab_faces = convert_LAB(album_faces)
 
-saveLAB(lab_faces, 'LAB_TEST_FACES')
+#saveLAB(lab_faces, 'LAB_TEST_FACES')
 # album_colors = resize(album_colors)
 # album_colors = convert(album_colors)
 
@@ -259,4 +263,3 @@ saveLAB(lab_faces, 'LAB_TEST_FACES')
 # saveAugmented(augmented_faces, 'augmented_faces')
 
 
-converted_faces = convert_LAB(album_faces)

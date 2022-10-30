@@ -31,7 +31,7 @@ Epochs = 100
 lr = 0.01
 criterion = nn.MSELoss()
 torch.set_default_tensor_type(torch.FloatTensor)
-
+path = os.getcwd() 
 
 #CNN resource: https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial9/AE_CIFAR10.html
 if platform == 'darwin':
@@ -53,16 +53,23 @@ def group(data, album_length):
     for i in range (0, album_length, 3):
         yield image_data[i:i+3]
   
-def make_numpy_format(image):
-    image = torch.swapaxes(image, 0, 1)
-    image = torch.swapaxes(image, 1, 2)
-    return image
+def save_model(model, folder_name, epoch):
+    subfolder_dir = os.path.join(path, folder_name)
+    
+    if not os.path.exists(subfolder_dir):
+        os.mkdir(subfolder_dir)
+    torch.save(model.state_dict(), os.path.join(subfolder_dir, f'model{epoch}.pth'))
+        
+ 
 
-def make_tensor(image):
-    image = np.swapaxes(image, 2,1)
-    image = np.swapaxes(image, 1,0)
-    return image
-
+def save_image(image, folder_name, epoch, image_name):
+    subfolder_dir = os.path.join(path, folder_name)
+    
+    if not os.path.exists(subfolder_dir):
+        os.makedirs(subfolder_dir)
+    plt.imsave( os.path.join(subfolder_dir, f'{image_name}{epoch}.png'), image)
+        
+    
 
 class imageDataset(Dataset):
     def __init__(self,  l_color_space, ab_color_space,):
@@ -70,11 +77,6 @@ class imageDataset(Dataset):
         a = (ab_color_space[:, 0, :, :, 0])
         b = (ab_color_space[:, 1, :, :, 0])
         l = (l_color_space[:,:,:,0])
-        
-
-        #it seems that I will have to use permute 
-        #to get from numpy image representation
-        #to torch tensor image 
         
         self.a = a
         self.b = b
@@ -163,14 +165,7 @@ class colorizer(nn.Module):
        
         
     def forward(self, x):
-        #Normalize input first
-       # make_Tensor = T.ToTensor()
-     #   transform_pil = T.ToPILImage()
-        
-        #out = make_Tensor(x)
-        #out = transform_pil(x)
-        #want to change this to batch normalization eventually
-      #  out = normalize(out)
+
         x = x.float()
         out = self.downsamp1(x)
         out = self.downsamp2(out)
@@ -184,11 +179,6 @@ class colorizer(nn.Module):
         out = self.upsamp5(out)
         #collapse dimension 1 along dimension 0 using flatten
         out = torch.flatten(out, 0, 1)
-       #out = nn.linear(2, size)
-       # out = out.detach().numpy()
-       # out = make_numpy(out)
-       # out = np.uint8(out)
-      
         return out
 
 
@@ -199,7 +189,7 @@ class colorizer(nn.Module):
 
 home_dir = os.getcwd() 
 #change this parameter depending on which album you want
-target_album = 'LAB_TEST_FACES'
+target_album = 'LAB_COLORS'
 if target_album == 'LAB_TEST_FACES':
     album = 'faces'
 else:
@@ -260,8 +250,8 @@ validation_loss = []
 val_ticker = 0
 last_loss = 20000
 
-# rows, cols = (2, Epochs)
-# stored_images = [[0 for i in range(cols)] for j in range(rows)]
+rows, cols = (2, Epochs)
+stored_images = [[0 for i in range(cols)] for j in range(rows)]
 
 for epoch in range(Epochs):  # loop over the dataset multiple times
     color.train()
@@ -278,13 +268,6 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         #each batch is ten images so loop through all the images per batch
         # no!!!! this defeats the point of batches if you loop through each image you've essentially made your batch size 1 -hmk
         
-        # for index, images in enumerate(batch):
-            # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
-            # different images!
-       
-     
-        #labels = torch.tensor((label_a, label_b))
-        #might not be necessary to drop duplicates
         labels = torch.stack((a, b), 1).float().to(device)
         input_l = torch.unsqueeze(l, 1).to(device)
     
@@ -325,8 +308,9 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         print("Validation MSE Loss =", (running_val_loss/len(val_loader)))
 
         if (running_val_loss/len(val_loader)) - last_loss >= 0.1:
-            path = f"./chkpt_{album}/color_model_{epoch}.pt"
-            torch.save(color.state_dict(), path)
+            save_model(color, 'stored_models', epoch)
+           # path = f"./chkpt_{album}/color_model_{epoch}.pt"
+            #torch.save(color.state_dict(), path)
         last_loss = (running_val_loss/len(val_loader))
 
         # once done with a loop I want to print out the target image 
@@ -344,10 +328,13 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
         sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
         sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
         #plt.imshow(sample_colorized)                   dont need these anymore bc im just saving the images as pngs instead -hmk
-        # stored_images[0][epoch] = sample_target
-        # stored_images[1][epoch] = sample_colorized
-        cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
-        cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
+        stored_images[0][epoch] = sample_target
+        stored_images[1][epoch] = sample_colorized
+        
+        save_image(sample_colorized, f'colorized_images_from_{album}' + slash + 'images', epoch, 'output')
+        save_image(sample_target, f'colorized_images_from_{album}' + slash + 'images', epoch, 'target')
+        #plt.imsave(f"./colorized_{album}/images/target_image_{epoch}.png",sample_target)
+        #plt.imsave(f"./colorized_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
 
     print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, Epochs, running_loss/len(train_loader)))
 
@@ -355,15 +342,19 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
 print('Finished Training')
 train_loss = [epoch.cpu().detach().numpy() for epoch in train_loss] # changed var from val bc this has nothing to do with validation -hmk
 validation_loss = [val.cpu().detach().numpy() for val in validation_loss]
-plt.figure() # just added the val line and labels to make it pretty and saved it so it can be in the report -hmk
+
+fig = plt.figure() # just added the val line and labels to make it pretty and saved it so it can be in the report -hmk
 plt.plot(np.arange(0,Epochs,1), train_loss, 'r', label='Training Loss')
 plt.plot(np.arange(0,Epochs,10), validation_loss,'b', label='Validation Loss')
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
 plt.legend(loc="upper right")
-plt.savefig(f"./chkpt_{album}/training-val-plot.png")
-plt.show()
+
+plot_path = path + slash + f'colorized_images_from_{album}' + slash + 'training-val-plot.png'
+plt.savefig( plot_path)
+# plt.savefig(f"./chkpt_{album}/training-val-plot.png")
+# plt.show()
 
 # testing time!! -hmk
 color.load_state_dict(torch.load(path))

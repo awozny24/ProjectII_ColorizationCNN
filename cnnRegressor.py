@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 # For utilities
 from sklearn.model_selection import train_test_split
+#from torchmetrics import Accuracy
+from sklearn.metrics import accuracy_score
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.functional import normalize
 from sys import platform
@@ -233,7 +235,15 @@ regressor = chrominance_reg().to(device)
 # chrome_b = makeChrome(1, None, chrome[0][1].detach().numpy())
 # chrome_all = makeChrome(2, chrome[0][0].detach().numpy(), chrome[0][1].detach().numpy())
 
+<<<<<<< Updated upstream
 # run color regressor
+=======
+# chrome_a = makeChrome(0, chrome[0][0].detach().numpy(), None)
+# chrome_b = makeChrome(1, None, chrome[0][1].detach().numpy())
+# chrome_all = makeChrome(2, chrome[0][0].detach().numpy(), chrome[0][1].detach().numpy())
+
+#run color regressor
+>>>>>>> Stashed changes
 lr = 0.01
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(regressor.parameters(), lr)
@@ -244,6 +254,7 @@ optimizer = torch.optim.Adam(regressor.parameters(), lr)
 
 # training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
 
+<<<<<<< Updated upstream
 train_loss = []
 validation_loss = []
 val_ticker = 0
@@ -319,6 +330,71 @@ for epoch in range(Epochs):  # loop over the dataset multiple times
 
                 val_loss = criterion(val_outputs, labels)
                 running_val_loss += val_loss
+=======
+          
+def runEpochs(Epochs, loader, model, optimizer, criterion, isTraining):
+    loss_list = []
+    accuracies = []
+    isTraining = isTraining == 'Train'
+    
+    for epoch in range(Epochs):
+        print(f'in epoch: {epoch}')
+        
+              
+        for i, batch in enumerate(loader):
+            
+            batch_a = batch[0]
+            batch_b = batch[1]
+            batch_l = batch[2]
+            
+            for index, image in enumerate(batch):                     
+                
+                # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
+              #different images!
+                label_a = normalize(batch_a[index].float())
+                label_b = normalize(batch_b[index].float())
+                input_l = normalize(batch_l[index].float())
+                
+                #need to get the mean of labels across all dimensions
+                mean_a = torch.mean(label_a, dim = [0, 1, 2])
+                mean_b = torch.mean(label_b, dim = [0, 1, 2])
+                
+                labels = torch.tensor((mean_a, mean_b))
+                #add new axis to make it consistent with dimension of regressor output tensor
+                labels = torch.unsqueeze(labels, 0)
+                
+                # zero the parameter gradients
+                optimizer.zero_grad()
+                
+                outputs = regressor(np.asarray(input_l))
+                loss = criterion(outputs, labels)
+                           
+                #calculate accuracy
+               
+                #acc = accuracy_score(labels.detach().numpy(), outputs.detach().numpy())
+                #accuracies.append(acc)
+                
+                #if training update weights
+                if isTraining:
+                    loss.backward()
+                    optimizer.step()
+            
+            
+        loss_list.append(loss)
+        if isTraining:
+            print('Epoch {} of {}, Train Loss: {:.3f}'.format( epoch+1, Epochs, loss))
+        else:
+            print('Epoch {} of {}, Test Loss: {:.3f}'.format( epoch+1, Epochs, loss))
+       # print(f'Accuracy: {acc[epoch]}')   
+        
+    return loss_list
+    
+train_loss = runEpochs(Epochs, train_loader, chrome, optimizer, criterion, isTraining = 'Train')
+        
+    
+
+
+>>>>>>> Stashed changes
 
         validation_loss.append(running_val_loss)
         print("\nNumber Of Images Tested =", len(val_loader)*batch_size)
