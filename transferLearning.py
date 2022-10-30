@@ -244,12 +244,13 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
         if early_stopping.early_stop:
             print("Early stopping")
             break
+
+        print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
+
         
     # load the last checkpoint with the best model
     color.load_state_dict(torch.load('checkpoint.pt'))
     
-    print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
-
     return color
 
 
