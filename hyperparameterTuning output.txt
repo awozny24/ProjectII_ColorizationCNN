@@ -1,0 +1,718 @@
+(ML) C:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN>C:/Users/hkirkland/.conda/envs/ML/python.exe c:/Users/hkirkland/Documents/cap5404/ProjectII_ColorizationCNN/hyperparameterTuning.py
+
+
+BatchSize = 10 and LR = 0.001
+Traceback (most recent call last):
+  File "c:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN\hyperparameterTuning.py", line 177, in <module>
+    image_data = LoadLabInOrder(home_dir + slash + album + slash)
+  File "c:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN\hyperparameterTuning.py", line 63, in LoadLabInOrder
+    maxFileNum = max([int(f) for f in files])
+  File "c:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN\hyperparameterTuning.py", line 63, in <listcomp>
+    maxFileNum = max([int(f) for f in files])
+ValueError: invalid literal for int() with base 10: 'C:\\Users\\hkirkland\\Documents\\cap5404\\ProjectII_ColorizationCNN\\LAB_TEST_FACES\\0'
+
+(ML) C:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN>C:/Users/hkirkland/.conda/envs/ML/python.exe c:/Users/hkirkland/Documents/cap5404/ProjectII_ColorizationCNN/hyperparameterTuning.py
+
+
+BatchSize = 10 and LR = 0.001
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19647.1836, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19544.176
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18164.5156, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 18249.549
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(15214.6455, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 15338.177
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(11473.5371, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 11650.582
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(7788.1924, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 7931.800
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(4599.0464, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 4722.642
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(2275.9419, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 2354.066
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(864.0025, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 912.440
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(253.8847, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 250.061
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(57.4357, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 48.378
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(28.2022, device='cuda:0')
+Epoch 100 of 100, Training MSE Loss: 15.027
+Finished Training
+Traceback (most recent call last):
+  File "c:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN\hyperparameterTuning.py", line 298, in <module>
+    plt.plot(np.arange(0,Epochs,10), validation_loss,'b', label='Validation Loss')
+  File "C:\Users\hkirkland\.conda\envs\ML\lib\site-packages\matplotlib\pyplot.py", line 2757, in plot
+    return gca().plot(
+  File "C:\Users\hkirkland\.conda\envs\ML\lib\site-packages\matplotlib\axes\_axes.py", line 1632, in plot
+    lines = [*self._get_lines(*args, data=data, **kwargs)]
+  File "C:\Users\hkirkland\.conda\envs\ML\lib\site-packages\matplotlib\axes\_base.py", line 312, in __call__
+    yield from self._plot_args(this, kwargs)
+  File "C:\Users\hkirkland\.conda\envs\ML\lib\site-packages\matplotlib\axes\_base.py", line 498, in _plot_args
+    raise ValueError(f"x and y must have same first dimension, but "
+ValueError: x and y must have same first dimension, but have shapes (10,) and (11,)
+
+(ML) C:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN>C:/Users/hkirkland/.conda/envs/ML/python.exe c:/Users/hkirkland/Documents/cap5404/ProjectII_ColorizationCNN/hyperparameterTuning.py
+
+
+BatchSize = 10 and LR = 0.001
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19545.1348, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19495.730
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18158.6426, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 18210.676
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(15227.7275, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 15298.927
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(11449.1406, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 11618.871
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(7790.2168, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 7905.171
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(4618.7593, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 4703.799
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(2248.9490, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 2339.472
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(891.3669, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 904.027
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(248.6751, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 243.516
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(54.4797, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 43.550
+Finished Training
+
+
+BatchSize = 10 and LR = 0.01
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(20971.3594, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19295.398
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(21.4284, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 20.251
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(20.6177, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 16.521
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.7660, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 15.742
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.7161, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 15.015
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.7589, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 14.712
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.9369, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 14.168
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.1957, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 6.615
+Traceback (most recent call last):
+  File "c:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN\hyperparameterTuning.py", line 268, in <module>
+    running_loss += loss.item()
+KeyboardInterrupt
+^C
+(ML) C:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN>C:/Users/hkirkland/.conda/envs/ML/python.exe c:/Users/hkirkland/Documents/cap5404/ProjectII_ColorizationCNN/hyperparameterTuning.py
+
+
+BatchSize = 10 and LR = 0.001
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19588.3906, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19585.430
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18104.1035, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 18294.784
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(15210.0781, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 15378.623
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(11561.4072, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 11688.982
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(7796.1543, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 7962.115
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(4638.7290, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 4746.729
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(2313.4731, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 2370.461
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(875.7007, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 922.676
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(249.2920, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 255.102
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(56.7694, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 51.125
+Finished Training
+
+
+BatchSize = 10 and LR = 0.01
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18766.7852, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19356.369
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(20.2955, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 19.607
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.9601, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 12.009
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.4119, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 7.191
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(17.2992, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 6.228
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(17.2824, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 5.569
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.7284, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 5.212
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(17.5550, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 4.766
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(17.8214, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 4.811
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.2734, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 4.836
+Finished Training
+
+
+BatchSize = 10 and LR = 0.1
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(237.0455, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 9441.742
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(21.8267, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 19.828
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(21.0692, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 16.869
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.5118, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 15.417
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.1363, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 8.062
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.5074, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 6.391
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.3042, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 6.193
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.8484, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 6.426
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.8887, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 6.080
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.8230, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 5.823
+Finished Training
+
+Number Of Images Tested = 80
+Testing MSE Loss = tensor(18.5572, device='cuda:0')
+
+
+BatchSize = 20 and LR = 0.001
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19504.9004, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19583.431
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19175.3477, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 19199.059
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18228.2754, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 18306.309
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(16878.5645, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 16984.577
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(15288.3838, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 15351.874
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(13448.4453, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 13517.416
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(11508.1387, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 11591.634
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(9602.0205, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 9664.127
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(7765.4268, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 7825.129
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(6016.0391, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 6106.997
+Finished Training
+
+
+BatchSize = 20 and LR = 0.01
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(21761.4551, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19551.328
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(2448.9692, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 2952.593
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(23.2976, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 16.886
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(22.3312, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 13.686
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(20.1013, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 10.370
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.0903, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 6.573
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.5508, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 5.407
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.6494, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 4.460
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.2662, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 4.095
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(19.7216, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 4.036
+Finished Training
+
+
+BatchSize = 20 and LR = 0.1
+Device: cuda:0
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(12497.4316, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 16000.678
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(24.5724, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 20.012
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(23.3085, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 17.286
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(22.5150, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 15.454
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(23.4718, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 9.717
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(289.1564, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 5.428
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.1966, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 5.446
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(17.5926, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 4.649
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.1349, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 3.911
+
+Number Of Images Tested = 80
+Validation MSE Loss = tensor(18.1101, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 4.134
+Finished Training
+
+Number Of Images Tested = 80
+Testing MSE Loss = tensor(18.3801, device='cuda:0')
+
+
+BatchSize = 32 and LR = 0.001
+Device: cuda:0
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(19540.0703, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19589.520
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(19395.3984, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 19423.031
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(19028.3594, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 19053.469
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(18514.9512, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 18498.445
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(17737.1328, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 17777.106
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(16928.8867, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 16912.174
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(15884.1592, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 15931.926
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(14803.8340, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 14864.168
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(13635.2539, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 13733.319
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(12515.4092, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 12562.640
+Finished Training
+
+
+BatchSize = 32 and LR = 0.01
+Device: cuda:0
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(20400.9766, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19579.937
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(10178.5469, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 10825.373
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(834.8364, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 1004.656
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(28.0112, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 21.593
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(22.6993, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 14.375
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(21.4450, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 13.936
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(21.5035, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 13.877
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(21.2972, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 13.543
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(19.7894, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 13.510
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(22.1175, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 13.388
+Finished Training
+
+
+BatchSize = 32 and LR = 0.1
+Device: cuda:0
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(35382.8203, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 18305.786
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(28.0483, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 19.448
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(20.6580, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 16.011
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(20.0178, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 15.184
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(21.6685, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 14.424
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(26.7937, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 12.362
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(20.9475, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 5.681
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(20.8751, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 4.829
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(19.7302, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 4.124
+
+Number Of Images Tested = 96
+Validation MSE Loss = tensor(20.2269, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 3.937
+Finished Training
+
+Number Of Images Tested = 96
+Testing MSE Loss = tensor(18.9412, device='cuda:0')
+
+
+BatchSize = 50 and LR = 0.001
+Device: cuda:0
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19581.8262, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19610.452
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19470.1289, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 19480.646
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19222.7266, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 19312.930
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19006.0352, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 19031.995
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(18562.6914, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 18622.304
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(18081.6719, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 18193.921
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(17642.1328, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 17696.662
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(17044.1855, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 17113.778
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(16389.7539, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 16445.452
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(15633.4453, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 15766.839
+Finished Training
+
+
+BatchSize = 50 and LR = 0.01
+Device: cuda:0
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(34338.7461, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 19539.661
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(14417.7666, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 15210.780
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(5585.7646, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 6029.902
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(763.2993, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 870.564
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(56.3443, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 47.464
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(20.8363, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 15.182
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(20.9552, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 14.365
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(21.5940, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 14.657
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(20.7839, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 13.632
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19.3564, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 13.015
+Finished Training
+
+
+BatchSize = 50 and LR = 0.1
+Device: cuda:0
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(275537.4062, device='cuda:0')
+Epoch 1 of 100, Training MSE Loss: 18976.768
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19.4743, device='cuda:0')
+Epoch 11 of 100, Training MSE Loss: 21.268
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19.3592, device='cuda:0')
+Epoch 21 of 100, Training MSE Loss: 18.496
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(18.8104, device='cuda:0')
+Epoch 31 of 100, Training MSE Loss: 16.748
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(21.2071, device='cuda:0')
+Epoch 41 of 100, Training MSE Loss: 16.115
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(17.4899, device='cuda:0')
+Epoch 51 of 100, Training MSE Loss: 15.127
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(20.6732, device='cuda:0')
+Epoch 61 of 100, Training MSE Loss: 16.020
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(18.5635, device='cuda:0')
+Epoch 71 of 100, Training MSE Loss: 14.115
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(19.3240, device='cuda:0')
+Epoch 81 of 100, Training MSE Loss: 11.538
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(16.6155, device='cuda:0')
+Epoch 91 of 100, Training MSE Loss: 7.016
+Finished Training
+
+Number Of Images Tested = 100
+Testing MSE Loss = tensor(17.0553, device='cuda:0')
+
+(ML) C:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN>                                                                                                              
