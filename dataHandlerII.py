@@ -58,13 +58,13 @@ def resize(album):
 
         
 
-def convert_tensor(album):
+def convert_tensor(album, isLAB = True):
     #convert everything in the lists to tensors
     #then stack list of tensors
     #to get 4d tensor
      for index, img in enumerate(album):
-        
-         img = torch.from_numpy(img)
+         img = torch.as_tensor(np.array(img).astype('float'))
+        # img = torch.from_numpy(img)
          album[index] = img
          if(img) == None:
              print('there is none object')
@@ -87,37 +87,56 @@ def shuffle(album):
 
 
 
-def AugmentData(album, multiplier=3, keepOriginal=True):
+def AugmentData(album, multiplier=3, keepOriginal=True, isLAB = True, original_album = None):
     #main difference here is that I'm only working with numpy arrays in the list
     #haven't converted to tensor
     
     #generate a list that is 10 times the size of the album in question
-    augmented_alb = [[] for _ in range(10 * len(album))]
+    if (isLAB):
+        augmented_alb = [[] for _ in range(10 * 3 * len(original_album))]
+    else:
+        augmented_alb = [[] for _ in range(10 * len(original_album))]
+           
     #borrowed code
     if keepOriginal:
-        augmented_alb[0:len(album)] = np.array(album)[np.random.permutation(len(album))]
+        augmented_alb[0:len(album)] = np.array(original_album)[np.random.permutation(len(original_album))]
         start_index = len(album)
     else:
         start_index = 0    
         #start at starting index
-    for index, entry in enumerate(augmented_alb[start_index:]):
-        
-        chosen_image = random.choice(album)
-        
-        k = random.randint(1,3)
-        selected_transforms = random.sample(range(3),k)
-        
-        #use function dictionary to decide which transforms to perform
-        transforms_table = {0:horiz_flip, 1:scale, 2:crop }
-        
-        for transform in selected_transforms:
-            chosen_image = transforms_table[transform](chosen_image)
+    
+    if (isLAB):
+        for index, entry in enumerate(augmented_alb[start_index:]):
             
-            #torch.tensor(chosen_image)
+            images_set = random.choice(album)
+            images = [images_set[x][1] for x in range(3)]
+            k = random.randint(1,3)
+            selected_transforms = random.sample(range(3),k)
             
-            #store results
-        entry = chosen_image
-        augmented_alb[start_index + index] = entry
+            #use function dictionary to decide which transforms to perform
+            transforms_table = {0:horiz_flip, 1:scale, 2:crop }
+            for image in images:
+                for transform in selected_transforms:
+                    chosen_image = transforms_table[transform](image)                
+                #store results
+            entry = chosen_image
+            augmented_alb[start_index + index] = entry
+        
+    else:
+        for index, entry in enumerate(augmented_alb[start_index:]):
+      
+            chosen_image = random.choice(album)
+      
+            k = random.randint(1,3)
+            selected_transforms = random.sample(range(3),k)
+            #use function dictionary to decide which transforms to perform
+            transforms_table = {0:horiz_flip, 1:scale, 2:crop }
+      
+            for transform in selected_transforms:
+                chosen_image = transforms_table[transform](chosen_image)       
+          #store results
+            entry = np.array(chosen_image)
+            augmented_alb[start_index + index] = entry
     
     return augmented_alb
    
@@ -194,15 +213,18 @@ def convert_LAB(album):
         #do LAB conversion here
         image = np.asarray(image).astype('uint8')
         converted_image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        transform_pil = T.ToPILImage()
+   
         
         names = []
         channels = []
         
         for (name, chan) in zip(("L", "a", "b"), cv2.split(converted_image)):
             names.append(name)
-            channels.append(chan)
-           # cv2.imshow(name, chan)
-           
+            #get back to tensor 
+            channels.append(torch.as_tensor(np.array(chan).astype('float')))
+          
+         
         converted_album[index] = list(zip(names, channels))
               
     return converted_album
@@ -246,10 +268,15 @@ album_colors = load(originals_path + slash + '**' + slash +'*.jpg')
 #note album_faces is already size 128x128 does not need to be resized
 # album_faces = convert_tensor(album_faces)
 album_colors = resize(album_colors)
-#album_colors = convert_tensor(album_colors)
+album_colors = convert_tensor(album_colors)
+augmented_colors = AugmentData(album_colors, multiplier=3, keepOriginal=True, isLAB = False, original_album= album_colors)
+#album_colors = AugmentData(album_colors, multiplier = 3, keepOriginal = True, isLAB = False)
 
-lab_colors = convert_LAB(album_colors)
-saveLAB(lab_colors, 'LAB_COLORS')
+lab_colors = convert_LAB(augmented_colors)
+#lab_colors = convert_tensor(lab_colors)
+
+
+#saveLAB(lab_colors, 'LAB_COLORS')
 #lab_faces = convert_LAB(album_faces)
 
 #saveLAB(lab_faces, 'LAB_TEST_FACES')
@@ -259,7 +286,8 @@ saveLAB(lab_colors, 'LAB_COLORS')
 # album_gray =resize(album_gray)
 # album_gray = convert(album_gray)
 
-# augmented_faces = AugmentData(album_faces)
-# saveAugmented(augmented_faces, 'augmented_faces')
+#augmented_colors = AugmentData(lab_colors, multiplier=3, keepOriginal=True, isLAB = True, original_album= album_colors)
+#lab_colors = convert_LAB(augmented_colors)
+saveAugmented(augmented_colors, 'augmented_colors')
 
 
