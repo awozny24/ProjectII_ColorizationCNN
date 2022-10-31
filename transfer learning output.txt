@@ -1,0 +1,166 @@
+(ML) C:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN>C:/Users/hkirkland/.conda/envs/ML/python.exe c:/Users/hkirkland/Documents/cap5404/ProjectII_ColorizationCNN/transferLearning.py
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(2009805.2500, device='cuda:0')
+Validation loss decreased (inf --> 2009805.250000).  Saving model ...
+Epoch 1 of 200, Training MSE Loss: 472.886
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(7955.4473, device='cuda:0')
+Validation loss decreased (2009805.250000 --> 7955.447266).  Saving model ...
+Epoch 2 of 200, Training MSE Loss: 369.804
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(923.2681, device='cuda:0')
+Validation loss decreased (7955.447266 --> 923.268066).  Saving model ...
+Epoch 3 of 200, Training MSE Loss: 325.801
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(311.7650, device='cuda:0')
+Validation loss decreased (923.268066 --> 311.764954).  Saving model ...
+Epoch 4 of 200, Training MSE Loss: 289.016
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(264.4033, device='cuda:0')
+Validation loss decreased (311.764954 --> 264.403290).  Saving model ...
+Epoch 5 of 200, Training MSE Loss: 310.793
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(473.6517, device='cuda:0')
+EarlyStopping counter: 1 out of 10
+Epoch 6 of 200, Training MSE Loss: 300.707
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(244.4822, device='cuda:0')
+Validation loss decreased (264.403290 --> 244.482208).  Saving model ...
+Epoch 7 of 200, Training MSE Loss: 294.705
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(229.0477, device='cuda:0')
+Validation loss decreased (244.482208 --> 229.047729).  Saving model ...
+Epoch 8 of 200, Training MSE Loss: 291.606
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(343.3012, device='cuda:0')
+EarlyStopping counter: 1 out of 10
+Epoch 9 of 200, Training MSE Loss: 259.395
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(443.5770, device='cuda:0')
+EarlyStopping counter: 2 out of 10
+Epoch 10 of 200, Training MSE Loss: 278.113
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(7279.7949, device='cuda:0')
+EarlyStopping counter: 3 out of 10
+Epoch 11 of 200, Training MSE Loss: 238.302
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(585.7296, device='cuda:0')
+EarlyStopping counter: 4 out of 10
+Epoch 12 of 200, Training MSE Loss: 248.104
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(1850.6509, device='cuda:0')
+EarlyStopping counter: 5 out of 10
+Epoch 13 of 200, Training MSE Loss: 277.510
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(471.7990, device='cuda:0')
+EarlyStopping counter: 6 out of 10
+Epoch 14 of 200, Training MSE Loss: 285.093
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(195.4776, device='cuda:0')
+Validation loss decreased (229.047729 --> 195.477570).  Saving model ...
+Epoch 15 of 200, Training MSE Loss: 272.872
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(301.9613, device='cuda:0')
+EarlyStopping counter: 1 out of 10
+Epoch 16 of 200, Training MSE Loss: 249.524
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(370.1147, device='cuda:0')
+EarlyStopping counter: 2 out of 10
+Epoch 17 of 200, Training MSE Loss: 273.849
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(424.5890, device='cuda:0')
+EarlyStopping counter: 3 out of 10
+Epoch 18 of 200, Training MSE Loss: 259.749
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(619.5544, device='cuda:0')
+EarlyStopping counter: 4 out of 10
+Epoch 19 of 200, Training MSE Loss: 238.527
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(409.1050, device='cuda:0')
+EarlyStopping counter: 5 out of 10
+Epoch 20 of 200, Training MSE Loss: 239.197
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(467.4455, device='cuda:0')
+EarlyStopping counter: 6 out of 10
+Epoch 21 of 200, Training MSE Loss: 224.163
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(148.5627, device='cuda:0')
+Validation loss decreased (195.477570 --> 148.562683).  Saving model ...
+Epoch 22 of 200, Training MSE Loss: 226.608
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(317.9261, device='cuda:0')
+EarlyStopping counter: 1 out of 10
+Epoch 23 of 200, Training MSE Loss: 232.136
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(216.6308, device='cuda:0')
+EarlyStopping counter: 2 out of 10
+Epoch 24 of 200, Training MSE Loss: 227.336
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(593.7230, device='cuda:0')
+EarlyStopping counter: 3 out of 10
+Epoch 25 of 200, Training MSE Loss: 227.015
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(357.4766, device='cuda:0')
+EarlyStopping counter: 4 out of 10
+Epoch 26 of 200, Training MSE Loss: 220.892
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(369.4809, device='cuda:0')
+EarlyStopping counter: 5 out of 10
+Epoch 27 of 200, Training MSE Loss: 268.501
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(490.8994, device='cuda:0')
+EarlyStopping counter: 6 out of 10
+Epoch 28 of 200, Training MSE Loss: 218.393
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(548.7047, device='cuda:0')
+EarlyStopping counter: 7 out of 10
+Epoch 29 of 200, Training MSE Loss: 211.487
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(527.4348, device='cuda:0')
+EarlyStopping counter: 8 out of 10
+Epoch 30 of 200, Training MSE Loss: 209.306
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(678.4719, device='cuda:0')
+EarlyStopping counter: 9 out of 10
+Epoch 31 of 200, Training MSE Loss: 241.275
+
+Number Of Images Tested = 100
+Validation MSE Loss = tensor(2.2331e+08, device='cuda:0')
+EarlyStopping counter: 10 out of 10
+Early stopping
+
+Number Of Images Tested = 250
+Testing MSE Loss = tensor(258.8964, device='cuda:0')
+
+(ML) C:\Users\hkirkland\Documents\cap5404\ProjectII_ColorizationCNN>
