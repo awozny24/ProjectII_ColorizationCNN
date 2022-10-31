@@ -241,7 +241,7 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
 home_dir = os.getcwd() 
 
 #change this parameter depending on which album you want
-target_album = 'ColorfulLab'
+target_album = 'LAB_COLORS'
 album = 'fruit'
 
 # get names of folders for colorful fruit data
@@ -257,7 +257,7 @@ for ff in foodFolders:
 for i, val in enumerate(food_images):
     food_images[i] = cv2.resize(val, (128, 128))
 food_images_lab = convert_LAB(food_images)
-saveLAB(food_images_lab, "ColorfulLab")
+saveLAB(food_images_lab, "LAB_COLORS")
 
 # load L*a*b* images
 food_data = LoadLabInOrder(home_dir + slash + target_album + slash)
