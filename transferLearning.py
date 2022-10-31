@@ -257,7 +257,7 @@ foodFolders = [name for name in os.listdir("." + slash + target_album)]
 # get fruit images
 food_images = []
 for ff in foodFolders:
-    food_images.extend(load(home_dir + slash + target_album + slash + ff + slash + '*.jpg'))
+    food_images.extend(load(home_dir + slash + "ColorfulOriginal" + slash + ff + slash + '*.jpg'))
 
 # album_length = len(food_images)
 
