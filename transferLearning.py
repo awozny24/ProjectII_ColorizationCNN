@@ -17,7 +17,11 @@ from torch.utils.data import Dataset, DataLoader
 
 from tunedColorizer import colorizer
 from pytorchtool import EarlyStopping
-# from cnnColorizer import colorizer, trainModel
+
+if platform == 'darwin':
+    slash = '/'
+else: 
+    slash = '\\'
 
 def load(folder):
     files = glob.glob(folder)
@@ -148,9 +152,6 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
     val_ticker = 0
     last_loss = 20000
 
-    # rows, cols = (2, Epochs)
-    # stored_images = [[0 for i in range(cols)] for j in range(rows)]
-
     for epoch in range(epochs):  # loop over the dataset multiple times
         color.train()
     
@@ -162,16 +163,7 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
             b = img[1]
             l = img[2]
             
-            #each batch is ten images so loop through all the images per batch
-            # no!!!! this defeats the point of batches if you loop through each image you've essentially made your batch size 1 -hmk
-            
-            # for index, images in enumerate(batch):
-                # get the inputs; data is a list of tensors [chrominance_a_tensor, chrominance_b_tensor, grayscale_l_tensor]
-                # different images!
-        
-        
-            #labels = torch.tensor((label_a, label_b))
-            #might not be necessary to drop duplicates
+            # shape labels and input
             labels = torch.stack((a, b), 1).float().to(device)
             input_l = torch.unsqueeze(l, 1).to(device)
         
@@ -180,11 +172,11 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
             
             # forward + backward + optimize
             outputs = color((input_l))
-            # outputs = outputs.view(2, size)
                         
             #flatten labels along dimension 0
             labels = torch.flatten(labels, 0, 1)
             
+            # calculate MSE loss
             loss = criterion(outputs, labels)
         
             loss.backward()
@@ -193,6 +185,7 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
             # print statistics
             running_loss += loss.item()
                     
+        # store training loss
         train_loss.append(loss)
 
         # if epoch % 10 == 0:
@@ -221,21 +214,15 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
             # # and colorized image for comparison    
             sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
             sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
-            # plt.figure()
-            # plt.imshow(sample_target)
             
             sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
             sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
-            #plt.imshow(sample_target)
         
             colorized_a = outputs[0].cpu().detach().numpy().astype(np.uint8)
             colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
             sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
             sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
-            # plt.figure()
-            # plt.imshow(sample_colorized)                   # dont need these anymore bc im just saving the images as pngs instead -hmk
-            # stored_images[0][epoch] = sample_target
-            # stored_images[1][epoch] = sample_colorized
+    
             cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
             cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
 
@@ -247,24 +234,14 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
 
         print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
 
-        
-    # load the last checkpoint with the best model
-    color.load_state_dict(torch.load('checkpoint.pt'))
-    
-    return color
 
 
-if platform == 'darwin':
-    slash = '/'
-else: 
-    slash = '\\'
 
-    
 home_dir = os.getcwd() 
 
 #change this parameter depending on which album you want
 target_album = 'ColorfulLab'
-album = 'ColorfulLab'
+album = 'fruit'
 
 # if the specified directory does not exist, or if it exists but is empty
 if not os.path.exists(home_dir + slash + target_album) \
@@ -330,14 +307,16 @@ food_test_loader = torch.utils.data.DataLoader(dataset = food_test_dataset,  bat
 food_val_loader = torch.utils.data.DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
 
 
-        # from cnnColorizer import colorizer
-# cModel = torch.load('../saved_models/model_architecture_11.pt')
+# load fine tuned face model
 path = "./saved_models/color_architecture_9.pt"
 cModel = colorizer()
 cModel.load_state_dict(torch.load(path))
-
 cModel.eval()
-cModel.downsamp1.requires_grad=False
+
+# allow training of weights for first layer
+cModel.downsamp1.requires_grad=True
+
+# freeze layer weights
 cModel.downsamp2.requires_grad=False
 cModel.downsamp3.requires_grad=False
 cModel.downsamp4.requires_grad=False
@@ -345,41 +324,61 @@ cModel.downsamp5.requires_grad=False
 cModel.upsamp1.requires_grad=False
 cModel.upsamp2.requires_grad=False
 cModel.upsamp3.requires_grad=False
+
+# add average pool to 4th upsample layer
+cModel.upsamp4 = nn.Sequential(
+    nn.ConvTranspose2d(16, 4, kernel_size = 2, stride = 2),    
+    nn.BatchNorm2d(4),
+    nn.AvgPool2d(kernel_size = (1,1), stride = 1)
+    )
+
+# allow training of weights for last 2 layers
 cModel.upsamp4.requires_grad=True
 cModel.upsamp5.requires_grad=True
 
 
-#run color regressor
+# train transfer model on fruit/vegetable images
 lr = 0.01
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 optimizer = torch.optim.Adam(cModel.parameters(), lr)
-trainModel(cModel, food_train_loader, food_val_loader, optimizer, epochs=90, patience=20 album='fruit')
+trainModel(cModel, food_train_loader, food_val_loader, optimizer, epochs=90, patience=20, album='fruit')
 
+
+# calculate and print the loss on the test images
 running_test_loss = 0.0
 result = []
+bestModel = colorizer()
+bestModel.load_state_dict(torch.load(f'./chkpt_{album}/checkpoint.pt'))
 with torch.no_grad():
-    cModel.eval()
+    bestModel.eval()
+    
+    # for each test image
     for i, data in enumerate(food_test_loader):
+
+        # get the inputs and outputs
         test_l = torch.unsqueeze(data[2], 1).to(device)
-        test_outputs = cModel(test_l)
+        test_outputs = bestModel(test_l)
         test_labels = torch.stack((data[0], data[1]), 1).float().to(device)
         test_loss = criterion(test_outputs, torch.flatten(test_labels, 0, 1))
         running_test_loss += test_loss
         
+        # get the images from the last batch
         if i == len(food_test_loader)-1:
-
+            
+            # L*a*b* channel data
             a = data[0]
             b = data[1]
             l = data[2]
 
             test_l = torch.unsqueeze(l, 1).to(device)
-            outputs = cModel(test_l)
+            outputs = bestModel(test_l)
             test_a = torch.unsqueeze(a, 1).to(device)
             test_b = torch.unsqueeze(b, 1).to(device)
 
 print("\nNumber Of Images Tested =", len(food_test_loader)*batch_size)
 print("Testing MSE Loss =", (running_test_loss/len(food_test_loader)))
 
+# save the model predictions on the test data
 for i in range(1, l.shape[0]):
     colorized_a = outputs[2*i-2].cpu().detach().numpy().astype(np.uint8)
     colorized_b = outputs[2*i-1].cpu().detach().numpy().astype(np.uint8)
@@ -387,6 +386,3 @@ for i in range(1, l.shape[0]):
     sample_colorized = cv2.merge([colorized_l, colorized_a, colorized_b])
     sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
     cv2.imwrite(f"./chkpt_{album}/sample_results/output_image_{i}.png",sample_colorized)
-    # plt.figure()
-    # plt.imshow(sample_colorized)
-    # plt.title(str(i))
