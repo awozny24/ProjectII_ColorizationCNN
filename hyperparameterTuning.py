@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Oct 25 22:04:59 2022
-
-@author: Timothy Lu
-"""
-# also hannah kirkland
+# Authors: Alexander Wozny, Tim Lu, Hannah Kirkland
 
 import cv2
 import os
@@ -24,11 +18,6 @@ from torch.utils.data import Dataset, DataLoader
 from torch.nn.functional import normalize
 from sys import platform
 
-''''
-****SET IMPORTANT HYPERPARAMETERS HERE***
-
-'''
-
 torch.set_default_tensor_type(torch.FloatTensor)
 path = os.getcwd() 
 
@@ -37,8 +26,6 @@ if platform == 'darwin':
     slash = '/'
 else: 
     slash = '\\'
- 
-    
 
 #set paths 
 #resource:

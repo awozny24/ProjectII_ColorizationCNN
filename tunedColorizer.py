@@ -1,3 +1,5 @@
+# Authors: Alexander Wozny, Tim Lu, Hannah Kirkland
+
 import cv2
 import os
 from sklearn.utils import shuffle

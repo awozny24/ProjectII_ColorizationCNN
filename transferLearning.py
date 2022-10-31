@@ -1,3 +1,5 @@
+# Authors: Alexander Wozny, Tim Lu, Hannah Kirkland
+
 import cv2
 import os
 import torch
@@ -215,18 +217,18 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
             # once done with a loop I want to print out the target image 
             # # and colorized image for comparison    
             sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
-            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2GRB)
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2BGR)
             
             sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
-            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2GRB)
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2BGR)
         
             colorized_a = outputs[0].cpu().detach().numpy().astype(np.uint8)
             colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
             sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
-            sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2GRB)
+            sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2BGR)
     
-            cv2.imwrite('.' + slash + f"chkpt_{album}" + slash + "training_images" + slash f"target_image_{epoch}.png", sample_target)
-            cv2.imwrite('.' + slash f"chkpt_{album}" + slash + "training_images" + slash + f"output_image_{epoch}.png", sample_colorized)
+            cv2.imwrite('.' + slash + f"chkpt_{album}" + slash + "training_images" + slash + f"target_image_{epoch}.png", sample_target)
+            cv2.imwrite('.' + slash + f"chkpt_{album}" + slash + "training_images" + slash + f"output_image_{epoch}.png", sample_colorized)
 
         # use early stopping to prevent overfitting
         early_stopping(running_val_loss/len(valLoader), color)
@@ -237,6 +239,11 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
         print('Epoch {} of {}, Training MSE Loss: {:.3f}'.format( epoch+1, epochs, running_loss/len(trainLoader)))
 
 
+
+# hyperparameters for training
+batch_size = 50
+Epochs = 100
+lr = 0.1
 
 home_dir = os.getcwd() 
 
@@ -294,7 +301,7 @@ food_test_loader = torch.utils.data.DataLoader(dataset = food_test_dataset,  bat
 food_val_loader = torch.utils.data.DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
 
 # load fine tuned face model
-path = '.' + slash + "saved_models" + slash + "color_architecture_9.pt"
+path = '.' + slash + f"chkpt_{album}" + slash + "colorizer_finetuned.pt"
 cModel = colorizer()
 cModel.load_state_dict(torch.load(path))
 cModel.eval()
@@ -315,9 +322,6 @@ cModel.upsamp5.requires_grad=True
 
 
 # parameters for training
-batch_size = 50
-Epochs = 100
-lr = 0.1
 criterion = nn.MSELoss()
 torch.set_default_tensor_type(torch.FloatTensor)
 optimizer = torch.optim.Adam(cModel.parameters(), lr)
@@ -367,5 +371,5 @@ for i in range(1, l.shape[0]):
     colorized_b = outputs[2*i-1].cpu().detach().numpy().astype(np.uint8)
     colorized_l = l[i-1].detach().numpy()
     sample_colorized = cv2.merge([colorized_l, colorized_a, colorized_b])
-    sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2GRB)
+    sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2BGR)
     cv2.imwrite('.' + slash + f"chkpt_{album}" + slash + "sample_results" + slash + f"output_image_{i}.png", sample_colorized)
