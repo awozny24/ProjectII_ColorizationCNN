@@ -268,7 +268,7 @@ for batch_size in BatchSizes: # comment out this line when done with epochs
                         
             train_loss.append(loss)
 
-            if (epoch % 10 == 0) or (epoch == (Epochs-1)):
+            if (epoch % 10 == 0):
                 running_val_loss = 0.0
                 with torch.no_grad():
                     color.eval()
@@ -297,8 +297,10 @@ for batch_size in BatchSizes: # comment out this line when done with epochs
         plt.plot(np.arange(0,Epochs,10), validation_loss,'b', label='Validation Loss')
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title("Training and Validation Loss")
+        plt.title(f"Training and Validation Loss for Batch Size = {batch_size} and learning rate = {lr}")
         plt.legend(loc="upper right")
+        plt.savefig(f"bs_{batch_size}-lr_{lr}-training-val-plot.png")
+        plt.show()
 
 
     # plot_path = path + slash + f'colorized_images_from_{album}' + slash + 'training-val-plot.png'
