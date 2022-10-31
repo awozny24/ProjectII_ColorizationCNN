@@ -251,20 +251,20 @@ home_dir = os.getcwd()
 target_album = 'LAB_COLORS'
 album = 'fruit'
 
-# get names of folders for colorful fruit data
-foodFolders = [name for name in os.listdir("." + slash + target_album)]
+# # get names of folders for colorful fruit data
+# foodFolders = [name for name in os.listdir("." + slash + "ColorfulOriginal")]
 
-# get fruit images
-food_images = []
-for ff in foodFolders:
-    food_images.extend(load(home_dir + slash + "ColorfulOriginal" + slash + ff + slash + '*.jpg'))
+# # get fruit images
+# food_images = []
+# for ff in foodFolders:
+#     food_images.extend(load(home_dir + slash + "ColorfulOriginal" + slash + ff + slash + '*.jpg'))
 
-# album_length = len(food_images)
+# # album_length = len(food_images)
 
-for i, val in enumerate(food_images):
-    food_images[i] = cv2.resize(val, (128, 128))
-food_images_lab = convert_LAB(food_images)
-saveLAB(food_images_lab, "LAB_COLORS")
+# for i, val in enumerate(food_images):
+#     food_images[i] = cv2.resize(val, (128, 128))
+# food_images_lab = convert_LAB(food_images)
+# saveLAB(food_images_lab, "LAB_COLORS")
 
 # load L*a*b* images
 food_data = LoadLabInOrder(home_dir + slash + target_album + slash)
