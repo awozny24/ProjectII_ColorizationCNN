@@ -59,7 +59,13 @@ def save_model(model, folder_name, epoch):
     if not os.path.exists(subfolder_dir):
         os.mkdir(subfolder_dir)
     torch.save(model.state_dict(), os.path.join(subfolder_dir, f'model{epoch}.pth'))
-        
+
+def latest_model(folder):
+    folder_path = os.path.join(path, folder)
+    file_type = r'\*.pth'
+    files = glob.glob(folder_path + file_type)
+    max_file_path = max(files, key=os.path.getctime)
+    return max_file_path    
  
 
 def save_image(image, folder_name, epoch, image_name):
@@ -181,7 +187,7 @@ class colorizer(nn.Module):
         out = torch.flatten(out, 0, 1)
         return out
 
-
+latest = latest_model('stored_models')
 
 #set paths 
 #resource:
@@ -357,7 +363,8 @@ plt.savefig( plot_path)
 # plt.show()
 
 # testing time!! -hmk
-color.load_state_dict(torch.load(path))
+last_model_path = latest_model('stored_models')
+color.load_state_dict(torch.load(last_model_path))
 
 running_test_loss = 0.0
 with torch.no_grad():
