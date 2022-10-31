@@ -58,7 +58,7 @@ def LoadLabInOrder(folder):
     # find the largest number file to index (do not worry about how these next few lines work)
     files = glob.glob(folder + "*L.jpg")
     for i, f in enumerate(files):
-        f = f[f.rfind('/')+1:]
+        f = f[f.rfind(slash)+1:]
         files[i] = f[0:f.rfind('.')-1]
     maxFileNum = max([int(f) for f in files])
     
@@ -161,7 +161,6 @@ def saveLAB(album, folder_name):
        count +=1
 
 
-batch_size = 32
 Epochs = 100
 lrVals = [0.001, 0.01, 0.1]
 BatchSizes = [10, 20, 32, 50]

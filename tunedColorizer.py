@@ -18,44 +18,48 @@ class colorizer(nn.Module):
     def __init__(self):
         super(colorizer, self).__init__()
         
-        # outSize = [8, 16, 32, 128, 256, 128, 32, 16, 8]
+        # number of filters at each layer (chosen from finetuning)
         outSize = [128, 256, 256, 200, 128, 64, 32, 16, 4] 
-        # outSize = [2, 8, 32, 128, 256, 256, 128, 32, 8, 2] 
+
+        # other attempted filter combinations
+          # outSize = [2, 4, 8, 16, 32, 16, 8, 4, 2] 
+          # outSize = [4, 16, 32, 64, 128, 200, 256, 256, 128]
+          # outSize = [8, 16, 32, 128, 256, 128, 32, 16, 8]
+          # outSize = [4, 8, 32, 128, 256, 256, 128, 32, 4]
+          # outSize = [2, 4, 8, 8, 8, 8, 8, 4, 2]
+          # outSize = [4, 32, 64, 64, 64, 64, 64, 32, 4]
+          # outSize = [80, 70, 60, 50, 40, 24, 16, 8, 4]
+          # outSize = [2, 4, 8, 16, 32, 16, 8, 4, 2]
     
         #128x128
         self.downsamp1 = nn.Sequential(
              nn.Conv2d(1, outSize[0], kernel_size = 3, stride = 2, padding = 1),
              nn.ReLU(),
              nn.BatchNorm2d(outSize[0]),
-            # nn.AvgPool2d(kernel_size = (1,1), stride = 1)
              )
         #64x64
         self.downsamp2 = nn.Sequential(
              nn.Conv2d(outSize[0], outSize[1], kernel_size = 3, stride = 2, padding = 1),
              nn.ReLU(),
              nn.BatchNorm2d(outSize[1]),
-           #  nn.AvgPool2d(kernel_size = (1,1), stride = 1)
              )
         #32x32
         self.downsamp3 = nn.Sequential(
              nn.Conv2d(outSize[1], outSize[2], kernel_size = 3, stride = 2, padding = 1),
              nn.ReLU(),
              nn.BatchNorm2d(outSize[2]),
-          #   nn.AvgPool2d(kernel_size = (1,1), stride = 1)
              )
         #16x16
         self.downsamp4 = nn.Sequential(
              nn.Conv2d(outSize[2], outSize[3], kernel_size = 3, stride = 2, padding = 1),
              nn.ReLU(),
              nn.BatchNorm2d(outSize[3]),
-          #   nn.AvgPool2d(kernel_size = (1,1), stride = 1)
              )
         #8x8
         self.downsamp5 = nn.Sequential(
              nn.Conv2d(outSize[3], outSize[4], kernel_size = 3, stride = 2, padding = 1),
              nn.ReLU(),
              nn.BatchNorm2d(outSize[4]),
-          #   nn.AvgPool2d(kernel_size = (1,1), stride = 1)
              )
         
         #begin upsampling here

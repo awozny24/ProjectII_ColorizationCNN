@@ -37,7 +37,7 @@ def LoadLabInOrder(folder):
     # find the largest number file to index (do not worry about how these next few lines work)
     files = glob.glob(folder + "*L.jpg")
     for i, f in enumerate(files):
-        f = f[f.rfind('/')+1:]
+        f = f[f.rfind(slash)+1:]
         files[i] = f[0:f.rfind('.')-1]
     maxFileNum = max([int(f) for f in files])
     
@@ -79,11 +79,6 @@ class imageDataset(Dataset):
         a = (ab_color_space[:, 0])
         b = (ab_color_space[:, 1])
         l = (l_color_space)
-        
-
-        #it seems that I will have to use permute 
-        #to get from numpy image representation
-        #to torch tensor image 
         
         self.a = a
         self.b = b
@@ -143,7 +138,20 @@ def saveLAB(album, folder_name):
 
 def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album):
 
-    early_stopping = EarlyStopping(patience=patience, verbose=True, path=f'./chkpt_{album}/checkpoint.pt')
+    # create directories for saving if they do not exist
+    home_dir = os.getcwd()
+    if not os.path.exists(home_dir + slash + f"chkpt_{album}"):
+        os.makedirs(home_dir + slash + f"chkpt_{album}")
+
+    if not os.path.exists(home_dir + slash + f"chkpt_{album}" + slash + "training_images"):
+        os.makedirs(home_dir + slash + f"chkpt_{album}" + slash + "training_images")
+
+    if not os.path.exists(home_dir + slash + f"chkpt_{album}" + slash + "sample_images"):
+        os.makedirs(home_dir + slash + f"chkpt_{album}" + slash + "sample_images")
+
+
+    path = '.' + slash + f"chkpt_{album}" + slash + "checkpoint.pt"
+    early_stopping = EarlyStopping(patience=patience, verbose=True, path=path)
 
     #training loop: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
     #loss_values = []
@@ -156,7 +164,6 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
         color.train()
     
         running_loss = 0.0
-        #I want batch to be of length 10 not 3 why?
         for i, img in enumerate(trainLoader):
             
             a = img[0] # i changed these for clarity and less typing i didn't want to type batch everytime -hmk
@@ -188,7 +195,6 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
         # store training loss
         train_loss.append(loss)
 
-        # if epoch % 10 == 0:
         running_val_loss = 0.0
         with torch.no_grad():
             color.eval()
@@ -203,28 +209,24 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
         print("\nNumber Of Images Tested =", len(valLoader)*batch_size)
         print("Validation MSE Loss =", (running_val_loss/len(valLoader)))
 
-        if epoch % 10 == 0:
-            if (running_val_loss/len(valLoader)) - last_loss >= 0.1:
-                path = f"./chkpt_{album}/color_model_{epoch}.pt"
-                torch.save(color.state_dict(), path)
         last_loss = (running_val_loss/len(valLoader))
 
         if epoch % 10 == 0:
             # once done with a loop I want to print out the target image 
             # # and colorized image for comparison    
             sample_target = cv2.merge([l[0].detach().numpy(), a[0].detach().numpy(), b[0].detach().numpy()]) 
-            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2GRB)
             
             sample_target = cv2.merge([l[0].cpu().detach().numpy(), a[0].cpu().detach().numpy(), b[0].cpu().detach().numpy()]) 
-            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2RGB)
+            sample_target = cv2.cvtColor(sample_target, cv2.COLOR_LAB2GRB)
         
             colorized_a = outputs[0].cpu().detach().numpy().astype(np.uint8)
             colorized_b = outputs[1].cpu().detach().numpy().astype(np.uint8)
             sample_colorized = cv2.merge([l[0].detach().numpy(), colorized_a, colorized_b])
-            sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
+            sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2GRB)
     
-            cv2.imwrite(f"./chkpt_{album}/images/target_image_{epoch}.png",sample_target)
-            cv2.imwrite(f"./chkpt_{album}/images/output_image_{epoch}.png",sample_colorized) # -hmk
+            cv2.imwrite('.' + slash + f"chkpt_{album}" + slash + "training_images" + slash f"target_image_{epoch}.png", sample_target)
+            cv2.imwrite('.' + slash f"chkpt_{album}" + slash + "training_images" + slash + f"output_image_{epoch}.png", sample_colorized)
 
         # use early stopping to prevent overfitting
         early_stopping(running_val_loss/len(valLoader), color)
@@ -236,41 +238,28 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
 
 
 
-
 home_dir = os.getcwd() 
 
 #change this parameter depending on which album you want
 target_album = 'ColorfulLab'
 album = 'fruit'
 
-# if the specified directory does not exist, or if it exists but is empty
-if not os.path.exists(home_dir + slash + target_album) \
-    or (os.path.exists(home_dir + slash + target_album) and not [name for name in os.listdir("." + slash + target_album)]):
+# get names of folders for colorful fruit data
+foodFolders = [name for name in os.listdir("." + slash + target_album)]
 
-    # get names of folders for colorful fruit data
-    foodFolders = [name for name in os.listdir("." + slash + target_album)]
+# get fruit images
+food_images = []
+for ff in foodFolders:
+    food_images.extend(load(home_dir + slash + target_album + slash + ff + slash + '*.jpg'))
 
-    # get fruit images
-    food_images = []
-    for ff in foodFolders:
-        food_images.extend(load(home_dir + slash + target_album + slash + ff + slash + '*.jpg'))
+# album_length = len(food_images)
 
-    # album_length = len(food_images)
+for i, val in enumerate(food_images):
+    food_images[i] = cv2.resize(val, (128, 128))
+food_images_lab = convert_LAB(food_images)
+saveLAB(food_images_lab, "ColorfulLab")
 
-    for i, val in enumerate(food_images):
-        food_images[i] = cv2.resize(val, (128, 128))
-    food_images_lab = convert_LAB(food_images)
-    saveLAB(food_images_lab, "ColorfulLab")
-
-    # plot rgb image
-#     plt.imshow(cv2.cvtColor(food_images[0], cv2.COLOR_BGR2RGB))
-
-batch_size = 32
-Epochs = 100
-lr = 0.01
-criterion = nn.MSELoss()
-torch.set_default_tensor_type(torch.FloatTensor)
-
+# load L*a*b* images
 food_data = LoadLabInOrder(home_dir + slash + target_album + slash)
 album_length = len(food_data)
 
@@ -284,8 +273,6 @@ food_train_images, food_val_images = train_test_split(food_train_images, test_si
 
 #further separate them into X's and Y's where L is the input and AB are the targets (LAB colorspace)
 #remember the dimensions are Number of grouped images X Index of image
-#this needs to be flipped
-
 food_X_train = food_train_images[:, 2, :, :, 0]
 food_y_train = food_train_images[:, 0:2, :, :, 0]
 
@@ -306,17 +293,14 @@ food_train_loader = torch.utils.data.DataLoader(dataset = food_train_dataset, ba
 food_test_loader = torch.utils.data.DataLoader(dataset = food_test_dataset,  batch_size = batch_size, shuffle=True)
 food_val_loader = torch.utils.data.DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
 
-
 # load fine tuned face model
-path = "./saved_models/color_architecture_9.pt"
+path = '.' + slash + "saved_models" + slash + "color_architecture_9.pt"
 cModel = colorizer()
 cModel.load_state_dict(torch.load(path))
 cModel.eval()
 
-# allow training of weights for first layer
-cModel.downsamp1.requires_grad=True
-
-# freeze layer weights
+# freeze layers in model
+cModel.downsamp1.requires_grad=False
 cModel.downsamp2.requires_grad=False
 cModel.downsamp3.requires_grad=False
 cModel.downsamp4.requires_grad=False
@@ -325,22 +309,21 @@ cModel.upsamp1.requires_grad=False
 cModel.upsamp2.requires_grad=False
 cModel.upsamp3.requires_grad=False
 
-# add average pool to 4th upsample layer
-cModel.upsamp4 = nn.Sequential(
-    nn.ConvTranspose2d(16, 4, kernel_size = 2, stride = 2),    
-    nn.BatchNorm2d(4),
-    nn.AvgPool2d(kernel_size = (1,1), stride = 1)
-    )
-
-# allow training of weights for last 2 layers
+# allow training of weights for last layer
 cModel.upsamp4.requires_grad=True
 cModel.upsamp5.requires_grad=True
 
 
-# train transfer model on fruit/vegetable images
-lr = 0.01
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+# parameters for training
+batch_size = 50
+Epochs = 100
+lr = 0.1
+criterion = nn.MSELoss()
+torch.set_default_tensor_type(torch.FloatTensor)
 optimizer = torch.optim.Adam(cModel.parameters(), lr)
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
+# train transfer model on fruit/vegetable images
 trainModel(cModel, food_train_loader, food_val_loader, optimizer, epochs=90, patience=20, album='fruit')
 
 
@@ -348,7 +331,7 @@ trainModel(cModel, food_train_loader, food_val_loader, optimizer, epochs=90, pat
 running_test_loss = 0.0
 result = []
 bestModel = colorizer()
-bestModel.load_state_dict(torch.load(f'./chkpt_{album}/checkpoint.pt'))
+bestModel.load_state_dict(torch.load('.' + slash + f"chkpt_{album}" + slash + "fruitBestModel.pt"))
 with torch.no_grad():
     bestModel.eval()
     
@@ -378,11 +361,11 @@ with torch.no_grad():
 print("\nNumber Of Images Tested =", len(food_test_loader)*batch_size)
 print("Testing MSE Loss =", (running_test_loss/len(food_test_loader)))
 
-# save the model predictions on the test data
+# save model sample predictions on the test data (this just uses the last batch of data)
 for i in range(1, l.shape[0]):
     colorized_a = outputs[2*i-2].cpu().detach().numpy().astype(np.uint8)
     colorized_b = outputs[2*i-1].cpu().detach().numpy().astype(np.uint8)
     colorized_l = l[i-1].detach().numpy()
     sample_colorized = cv2.merge([colorized_l, colorized_a, colorized_b])
-    sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2RGB)
-    cv2.imwrite(f"./chkpt_{album}/sample_results/output_image_{i}.png",sample_colorized)
+    sample_colorized = cv2.cvtColor(sample_colorized, cv2.COLOR_LAB2GRB)
+    cv2.imwrite('.' + slash + f"chkpt_{album}" + slash + "sample_results" + slash + f"output_image_{i}.png", sample_colorized)
