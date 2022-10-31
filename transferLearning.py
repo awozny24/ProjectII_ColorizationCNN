@@ -138,7 +138,7 @@ def saveLAB(album, folder_name):
 
 
 
-def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album):
+def trainModel(color, trainLoader, valLoader, optimizer, criterion, epochs, patience, album):
 
     # create directories for saving if they do not exist
     home_dir = os.getcwd()
@@ -159,8 +159,6 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
     #loss_values = []
     train_loss = []
     validation_loss = []
-    val_ticker = 0
-    last_loss = 20000
 
     for epoch in range(epochs):  # loop over the dataset multiple times
         color.train()
@@ -211,8 +209,6 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
         print("\nNumber Of Images Tested =", len(valLoader)*batch_size)
         print("Validation MSE Loss =", (running_val_loss/len(valLoader)))
 
-        last_loss = (running_val_loss/len(valLoader))
-
         if epoch % 10 == 0:
             # once done with a loop I want to print out the target image 
             # # and colorized image for comparison    
@@ -242,7 +238,7 @@ def trainModel(color, trainLoader, valLoader, optimizer, epochs, patience, album
 
 # hyperparameters for training
 batch_size = 50
-Epochs = 100
+Epochs = 200
 lr = 0.1
 
 home_dir = os.getcwd() 
@@ -286,8 +282,8 @@ food_y_train = food_train_images[:, 0:2, :, :, 0]
 food_X_test = food_test_images[:, 2, :, :, 0]
 food_y_test = food_test_images[:, 0:2, :, :, 0]
 
-food_X_val = food_test_images[:, 2, :, :, 0]
-food_y_val = food_test_images[:, 0:2, :, :, 0]
+food_X_val = food_val_images[:, 2, :, :, 0]
+food_y_val = food_val_images[:, 0:2, :, :, 0]
 
 
 #prepare datasets for images
@@ -296,13 +292,14 @@ food_test_dataset = imageDataset(food_X_test, food_y_test)
 food_val_dataset = imageDataset(food_X_val, food_y_val)
 
 # prepare dataloaders for batch training
-food_train_loader = torch.utils.data.DataLoader(dataset = food_train_dataset, batch_size = batch_size, shuffle=True)
-food_test_loader = torch.utils.data.DataLoader(dataset = food_test_dataset,  batch_size = batch_size, shuffle=True)
-food_val_loader = torch.utils.data.DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
+food_train_loader = DataLoader(dataset = food_train_dataset, batch_size = batch_size, shuffle=True)
+food_test_loader = DataLoader(dataset = food_test_dataset,  batch_size = batch_size, shuffle=True)
+food_val_loader = DataLoader(dataset = food_val_dataset,  batch_size = batch_size, shuffle=True)
 
 # load fine tuned face model
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 path = '.' + slash + f"chkpt_{album}" + slash + "colorizer_finetuned.pt"
-cModel = colorizer()
+cModel = colorizer().to(device)
 cModel.load_state_dict(torch.load(path))
 cModel.eval()
 
@@ -325,17 +322,16 @@ cModel.upsamp5.requires_grad=True
 criterion = nn.MSELoss()
 torch.set_default_tensor_type(torch.FloatTensor)
 optimizer = torch.optim.Adam(cModel.parameters(), lr)
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 # train transfer model on fruit/vegetable images
-trainModel(cModel, food_train_loader, food_val_loader, optimizer, epochs=90, patience=20, album='fruit')
-
+trainModel(cModel, food_train_loader, food_val_loader, optimizer, criterion, epochs=Epochs, patience=10, album='fruit')
 
 # calculate and print the loss on the test images
 running_test_loss = 0.0
 result = []
-bestModel = colorizer()
-bestModel.load_state_dict(torch.load('.' + slash + f"chkpt_{album}" + slash + "fruitBestModel.pt"))
+bestModel = colorizer().to(device)
+bestModel.load_state_dict(torch.load('.' + slash + f"chkpt_{album}" + slash + "checkpoint.pt"))
+
 with torch.no_grad():
     bestModel.eval()
     
