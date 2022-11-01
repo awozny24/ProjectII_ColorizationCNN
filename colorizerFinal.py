@@ -223,8 +223,8 @@ y_train = train_images[:, 0:2, :, :, :]
 X_test = test_images[:, 2, :, :, :]
 y_test = test_images[:, 0:2, :, :, :]
 
-X_val = test_images[:, 2, :, :, :]
-y_val = test_images[:, 0:2, :, :, :]
+X_val = val_images[:, 2, :, :, :]
+y_val = val_images[:, 0:2, :, :, :]
 
 #prepare datasets for images
 train_dataset = imageDataset(X_train, y_train)
